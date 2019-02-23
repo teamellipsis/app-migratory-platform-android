@@ -13,8 +13,13 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        ndk {
+            //https://developer.android.com/studio/projects/gradle-external-native-builds#specify-abi
+            abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
+        }
         externalNativeBuild {
             cmake {
+                arguments "-DANDROID_STL=c++_shared"
                 cppFlags "-frtti -fexceptions"
             }
         }
@@ -28,6 +33,12 @@ android {
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
+        }
+    }
+    sourceSets {
+        main {
+            //https://developer.android.com/studio/projects/gradle-external-native-builds#jniLibs
+            jniLibs.srcDirs 'jniLibs/'
         }
     }
 }
