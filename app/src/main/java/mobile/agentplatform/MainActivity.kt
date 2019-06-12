@@ -1,5 +1,6 @@
 package mobile.agentplatform
 
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -12,6 +13,7 @@ class MainActivity : AppCompatActivity() {
     var fileSystem: FileSystem? = null
     var nodeThread: Thread? = null
     var projectThread: Thread? = null
+    var webViewUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +79,18 @@ class MainActivity : AppCompatActivity() {
         } else {
             printLog("LOG: (killThread) " + projectThread?.name + " not alive")
         }
+    }
+
+    fun loadAgentActivitye(view: View) {
+        val intent = Intent(applicationContext, AgentActivity::class.java).apply {
+            putExtra("WEB_VIEW_URL", webViewUrl)
+        }
+        startActivity(intent)
+    }
+
+    fun assignUrl(view: View) {
+        webViewUrl = url.text.toString()
+        printLog("URL: " + webViewUrl)
     }
 
     fun printLog(text: String?) {

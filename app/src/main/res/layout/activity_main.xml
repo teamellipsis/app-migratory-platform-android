@@ -28,6 +28,18 @@
                     tools:ignore="MissingConstraints" app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintVertical_bias="0.092"
                     android:layout_margin="5dp"/>
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName"
+                    android:ems="10"
+                    android:id="@+id/url"
+                    android:hint="URL" android:autofillHints=""
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintHorizontal_bias="0.5" app:layout_constraintEnd_toEndOf="parent"
+                    tools:ignore="MissingConstraints" app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintVertical_bias="0.092"
+                    android:layout_margin="5dp"/>
             <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
@@ -84,6 +96,25 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" android:id="@+id/btnKillProject" android:layout_weight="1"
                         android:onClick="killThread"/>
+            </LinearLayout>
+            <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintHorizontal_bias="0.213" app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintVertical_bias="0.386" app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" android:layout_margin="5dp">
+                <Button
+                        android:text="Load Activity"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:id="@+id/btnLoadActivity" android:layout_weight="1"
+                        android:onClick="loadAgentActivitye"/>
+                <Button
+                        android:text="Assign URL"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:id="@+id/btnTest" android:layout_weight="1"
+                        android:onClick="assignUrl"/>
             </LinearLayout>
             <ScrollView
                     android:layout_width="match_parent"
