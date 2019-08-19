@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">MobileAgentPlatform</string>
+    <string name="app_name">ApplicationMigratoryPlatform</string>
+    <string name="main_activity_label">Application Migratory Platform</string>
 </resources>
