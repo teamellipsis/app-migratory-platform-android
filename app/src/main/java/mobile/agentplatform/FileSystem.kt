@@ -9,6 +9,7 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 class FileSystem {
 
@@ -31,8 +32,8 @@ class FileSystem {
         return Environment.getExternalStorageDirectory().absolutePath
     }
 
-    fun getFileContent(fileName: String): String {
-        var stream = FileInputStream(getExternalStorageDir() + "/" + fileName)
+    fun getFileContent(filePath: String): String {
+        var stream = FileInputStream(filePath)
         val inputReader = InputStreamReader(stream)
         val buffReader = BufferedReader(inputReader)
         var line: String? = null
@@ -49,6 +50,10 @@ class FileSystem {
 //        return Environment.getRootDirectory().absolutePath  //  /system
 //        return Environment.getDownloadCacheDirectory().absolutePath //  /cache
         return context.filesDir.absolutePath
+    }
+
+    fun getAppsDir(): String {
+        return context.filesDir.absolutePath + "/apps"
     }
 
     fun copyAssetsToFilesDir(): String {
@@ -80,7 +85,7 @@ class FileSystem {
         val file = File(context.filesDir, "node_modules.zip")
         val targetDirectory = File(context.filesDir.toString())
 
-        val nodeDirectory = File(context.filesDir.toString(),"node_modules")
+        val nodeDirectory = File(context.filesDir.toString(), "node_modules")
         if (nodeDirectory.exists()) {
             nodeDirectory.delete()
             val date1 = Date()
@@ -204,10 +209,13 @@ class FileSystem {
     }
 
 
-    @Volatile lateinit var zis:ZipInputStream
-    @Volatile var finished:AtomicBoolean = AtomicBoolean(false)
+    @Volatile
+    lateinit var zis: ZipInputStream
+    @Volatile
+    var finished: AtomicBoolean = AtomicBoolean(false)
 
-    @Synchronized fun getNextEntry():ZipEntry{
+    @Synchronized
+    fun getNextEntry(): ZipEntry {
         return zis.getNextEntry()
     }
 
@@ -228,41 +236,41 @@ class FileSystem {
 //                Log.i("App-Migratory-Platform",i.toString() + "start: " + time.toString())
 
 
-                try {
-                    lateinit var ze: ZipEntry
-                    var count = 0
-                    val buffer = ByteArray(8192)
+        try {
+            lateinit var ze: ZipEntry
+            var count = 0
+            val buffer = ByteArray(8192)
 //            while ({ ze = zis.getNextEntry(); ze }() != null) {
-                    while(!finished.get()) {
-                        ze = getNextEntry()
-                        val file = File(targetDirectory, ze.getName())
-                        val dir = if (ze.isDirectory()) file else file.parentFile
-                        if (!dir.isDirectory && !dir.mkdirs())
-                            throw FileNotFoundException("Failed to ensure directory: " + dir.absolutePath)
-                        if (ze.isDirectory())
-                            continue
-                        val fout = FileOutputStream(file)
-                        try {
+            while (!finished.get()) {
+                ze = getNextEntry()
+                val file = File(targetDirectory, ze.getName())
+                val dir = if (ze.isDirectory()) file else file.parentFile
+                if (!dir.isDirectory && !dir.mkdirs())
+                    throw FileNotFoundException("Failed to ensure directory: " + dir.absolutePath)
+                if (ze.isDirectory())
+                    continue
+                val fout = FileOutputStream(file)
+                try {
 //                    var count = 0
-                            while ({ count = zis.read(buffer); count }() != -1)
-                                fout.write(buffer, 0, count)
-                        } finally {
-                            fout.close()
-                        }
-                        /* if time should be restored as well
-                    long time = ze.getTime();
-                    if (time > 0)
-                        file.setLastModified(time);
-                    */
-                    }
-                } catch (e: IllegalStateException) {
-                    val date = Date()
-                    val time = date.getTime()
-                    finished.set(true)
-                    Log.i("App-Migratory-Platform", "unzip finished: " + time.toString())
+                    while ({ count = zis.read(buffer); count }() != -1)
+                        fout.write(buffer, 0, count)
                 } finally {
-                    zis.close()
+                    fout.close()
                 }
+                /* if time should be restored as well
+            long time = ze.getTime();
+            if (time > 0)
+                file.setLastModified(time);
+            */
+            }
+        } catch (e: IllegalStateException) {
+            val date = Date()
+            val time = date.getTime()
+            finished.set(true)
+            Log.i("App-Migratory-Platform", "unzip finished: " + time.toString())
+        } finally {
+            zis.close()
+        }
 
 
 //                val date1 = Date()
@@ -277,5 +285,63 @@ class FileSystem {
 //        for (i in 0..3){
 //            threads[i].join()
 //        }
+    }
+
+    fun zipDir(src: File, dest: File): Boolean {
+        try {
+            val fileOut = FileOutputStream(dest)
+            val zipOut = ZipOutputStream(BufferedOutputStream(fileOut))
+
+            return if (src.isDirectory) {
+                zipSubFolder(zipOut, src, src.parent.length)
+                zipOut.close()
+
+                true
+            } else {
+                zipOut.close()
+
+                false
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun zipSubFolder(zipOut: ZipOutputStream, dir: File, basePathLength: Int) {
+
+        val BUFFER_SIZE = 2048
+
+        val fileList = dir.listFiles()
+        var bufferedInputStream: BufferedInputStream? = null
+        for (file in fileList) {
+            if (file.isDirectory) {
+                if (file.listFiles().isNotEmpty()) {
+                    zipSubFolder(zipOut, file, basePathLength)
+
+                } else {
+                    val relativePath = file.path.substring(basePathLength).substring(1) + "/"
+                    val entry = ZipEntry(relativePath)
+                    entry.time = file.lastModified()
+                    zipOut.putNextEntry(entry)
+                }
+
+            } else {
+                val data = ByteArray(BUFFER_SIZE)
+                val relativePath = file.absolutePath.substring(basePathLength).substring(1)
+                val fileInputStream = FileInputStream(file)
+                bufferedInputStream = BufferedInputStream(fileInputStream, BUFFER_SIZE)
+                val entry = ZipEntry(relativePath)
+                entry.time = file.lastModified()
+                zipOut.putNextEntry(entry)
+                var count = 0
+                while ({ count = bufferedInputStream.read(data, 0, BUFFER_SIZE);count }() != -1) {
+                    zipOut.write(data, 0, count)
+                }
+                bufferedInputStream.close()
+            }
+        }
     }
 }
