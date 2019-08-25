@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context=".DirectoryChooserFragment">
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        <Button
+                android:text="Select"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/btnSelect"/>
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:id="@+id/viewPath" android:visibility="gone">
+            <View
+                    android:id="@+id/divider4"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?android:attr/listDivider"
+            />
+            <View
+                    android:id="@+id/divider5"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?android:attr/listDivider"
+                    android:layout_marginTop="5dp" android:layout_marginBottom="5dp"/>
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:id="@+id/txtDirLoc" android:layout_margin="5dp"
+                    android:layout_marginLeft="10dp" android:layout_marginRight="10dp"/>
+        </LinearLayout>
+        <View
+                android:id="@+id/divider2"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider"
+                android:layout_marginTop="5dp" android:layout_marginBottom="5dp"/>
+        <View
+                android:id="@+id/divider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider"
+        />
+        <ListView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:id="@+id/listViewFiles"/>
+        <View
+                android:id="@+id/divider3"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider"
+        />
+    </LinearLayout>
+
+</FrameLayout>

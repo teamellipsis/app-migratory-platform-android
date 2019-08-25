@@ -1,4 +1,28 @@
 <resources>
     <string name="app_name">ApplicationMigratoryPlatform</string>
     <string name="main_activity_label">Application Migratory Platform</string>
+
+    <!-- Strings related to activity_fresh_config -->
+    <string name="title_activity_fresh_config">Initial Configurations</string>
+    <string name="info_text_activity_fresh_config">This step take while.</string>
+    <string name="radio1_activity_fresh_config">Internal storage\n(Recommended)</string>
+    <string name="radio2_activity_fresh_config">Select location\n(Required external storage access permission)</string>
+    <string name="checking_permission">Checking file write permissions</string>
+    <string name="copying_assets">Copying assets to file system</string>
+    <string name="extracting_assets">Extracting assets</string>
+    <string name="cleaning_disposable">Cleaning disposable</string>
+
+    <string name="file_write_permission_ok">+ File system accessible</string>
+    <string name="file_write_permission_fail">- File system not accessible</string>
+    <string name="copy_assets_ok">+ Successfully copied assets</string>
+    <string name="copy_assets_fail">- Fail to copy assets</string>
+    <string name="extract_assets_ok">+ Successfully extracted assets</string>
+    <string name="extract_assets_fail">- Assets extraction failed</string>
+    <string name="clean_disposable_ok">+ Successfully cleaned disposable</string>
+    <string name="clean_disposable_fail">- Fail to clean disposable</string>
+    <string name="file_system_permission_denied">Please grant permission for access file system. Or select `Internal
+        storage` to continue.
+    </string>
+    <string name="null_selected_dir">Please select a folder</string>
+    <string name="not_writable_selected_dir">Selected folder is not writable. Please select another.</string>
 </resources>

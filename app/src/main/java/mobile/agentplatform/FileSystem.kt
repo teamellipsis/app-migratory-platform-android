@@ -56,6 +56,23 @@ class FileSystem {
         return context.filesDir.absolutePath + "/apps"
     }
 
+    fun getPackagesDir(): String {
+        return context.filesDir.absolutePath + "/packages"
+    }
+
+    /**
+     * Copy assets files into working directory of the application
+     */
+    fun copyAssetsToWorkingDir(assetsParentName: String, fileName: String, pathToWorkingDir: String): Boolean {
+        var assetFiles = context.assets.list(assetsParentName)
+
+        if (assetFiles.contains(fileName)) {
+            val toPath = File(pathToWorkingDir, fileName)
+            return copyAsset("$assetsParentName/$fileName", toPath)
+        }
+        return false
+    }
+
     fun copyAssetsToFilesDir(): String {
         var files = context.assets.list("node")
         var str = ""
@@ -128,44 +145,64 @@ class FileSystem {
         }
     }
 
+    /**
+     * Unzip given zip file into particular directory
+     */
     @Throws(IOException::class)
-    fun unzip(zipFile: File, targetDirectory: File) {
-        val zis = ZipInputStream(
+    fun unzip(zipFile: File, targetDirectory: File): Boolean {
+        val BUFFER_SIZE = 2048//8192
+        var unzipSuccess = true
+
+        val zipInputStream = ZipInputStream(
             BufferedInputStream(FileInputStream(zipFile))
         )
 
         try {
-            lateinit var ze: ZipEntry
-            var count = 0
-            val buffer = ByteArray(8192)
-            while ({ ze = zis.getNextEntry(); ze }() != null) {
-                val file = File(targetDirectory, ze.getName())
-                val dir = if (ze.isDirectory()) file else file.parentFile
-                if (!dir.isDirectory && !dir.mkdirs())
+            var zipEntry: ZipEntry? = null
+            val buffer = ByteArray(BUFFER_SIZE)
+            while ({ zipEntry = zipInputStream.nextEntry; zipEntry }() != null) {
+                val file = File(targetDirectory, zipEntry?.name)
+                val dir = if (zipEntry!!.isDirectory) file else file.parentFile
+
+                if (!dir.isDirectory && !dir.mkdirs()) {
                     throw FileNotFoundException("Failed to ensure directory: " + dir.absolutePath)
-                if (ze.isDirectory())
-                    continue
-                val fout = FileOutputStream(file)
-                try {
-//                    var count = 0
-                    while ({ count = zis.read(buffer); count }() != -1)
-                        fout.write(buffer, 0, count)
-                } finally {
-                    fout.close()
                 }
-                /* if time should be restored as well
-            long time = ze.getTime();
-            if (time > 0)
-                file.setLastModified(time);
-            */
+
+                if (zipEntry!!.isDirectory) {
+                    continue
+                }
+
+                val fileOutputStream = FileOutputStream(file)
+                fileOutputStream.use { fileOutputStream ->
+                    var count = 0
+                    while ({ count = zipInputStream.read(buffer); count }() != -1) {
+                        fileOutputStream.write(buffer, 0, count)
+                    }
+                }
             }
-        } catch (e: IllegalStateException) {
-            val date = Date()
-            val time = date.getTime()
-            Log.i("App-Migratory-Platform", "unzip finished: " + time.toString())
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            unzipSuccess = false
         } finally {
-            zis.close()
+            zipInputStream.close()
         }
+
+        return unzipSuccess
+    }
+
+    /**
+     * Delete only file
+     */
+    fun deleteFile(file: File): Boolean {
+        if (!file.isDirectory) {
+            try {
+                return file.delete()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        return false
     }
 
     @Throws(IOException::class)
