@@ -2,9 +2,12 @@ package mobile.agentplatform
 
 import android.content.Context
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Environment
 import android.util.Log
+import org.json.JSONObject
 import java.io.*
+import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.ZipEntry
@@ -205,44 +208,127 @@ class FileSystem {
         return false
     }
 
-    @Throws(IOException::class)
-    fun unzipByIntent(zipUri: Uri, targetDirectory: File) {
-        val zis = ZipInputStream(
+    /**
+     * Extract content by help of content resolver
+     */
+    fun unzipByIntent(
+        zipUri: Uri,
+        targetDirectory: File,
+        asyncTask: ActionSendZipActivity.ExtractPackageAsyncTask?
+    ): Boolean {
+        val zipInputStream = ZipInputStream(
             BufferedInputStream(context.contentResolver.openInputStream(zipUri))
         )
+        val BUFFER_SIZE = 2048
+        var unzipSuccess = true
 
         try {
-            lateinit var ze: ZipEntry
+            var zipEntry: ZipEntry? = null
             var count = 0
-            val buffer = ByteArray(8192)
-            while ({ ze = zis.getNextEntry(); ze }() != null) {
-                val file = File(targetDirectory, ze.getName())
-                val dir = if (ze.isDirectory()) file else file.parentFile
-                if (!dir.isDirectory && !dir.mkdirs())
+            var progress = 0
+            val buffer = ByteArray(BUFFER_SIZE)
+            while ({ zipEntry = zipInputStream.nextEntry; zipEntry }() != null) {
+                val file = File(targetDirectory, zipEntry?.name)
+                val dir = if (zipEntry!!.isDirectory) file else file.parentFile
+
+                if (!dir.isDirectory && !dir.mkdirs()) {
                     throw FileNotFoundException("Failed to ensure directory: " + dir.absolutePath)
-                if (ze.isDirectory())
-                    continue
-                val fout = FileOutputStream(file)
-                try {
-//                    var count = 0
-                    while ({ count = zis.read(buffer); count }() != -1)
-                        fout.write(buffer, 0, count)
-                } finally {
-                    fout.close()
                 }
-                /* if time should be restored as well
-            long time = ze.getTime();
-            if (time > 0)
-                file.setLastModified(time);
-            */
+
+                if (zipEntry!!.isDirectory) {
+                    continue
+                }
+                val fileOutputStream = FileOutputStream(file)
+                try {
+                    while ({ count = zipInputStream.read(buffer); count }() != -1) {
+                        fileOutputStream.write(buffer, 0, count)
+                    }
+                } finally {
+                    fileOutputStream.close()
+                }
+
+                asyncTask?.publishProgressCallBack(progress++)
+
             }
         } catch (e: IllegalStateException) {
             val date = Date()
             val time = date.getTime()
             Log.i("App-Migratory-Platform", "unzip finished: " + time.toString())
         } finally {
-            zis.close()
+            zipInputStream.close()
         }
+
+        return unzipSuccess
+    }
+
+    /**
+     * Search package.json file in zip file and return the content
+     */
+    fun scanPackageJson(zipUri: Uri): JSONObject? {
+        val zipInputStream = ZipInputStream(
+            BufferedInputStream(context.contentResolver.openInputStream(zipUri))
+        )
+        val BUFFER_SIZE = 2048
+
+        try {
+            var zipEntry: ZipEntry? = null
+            var count = 0
+            val buffer = ByteArray(BUFFER_SIZE)
+            while ({ zipEntry = zipInputStream.nextEntry; zipEntry }() != null) {
+
+                if (zipEntry?.name!!.contains(AppConstant.PACKAGE_JSON) && !zipEntry?.name!!.contains(AppConstant.NODE_MODULES)) {
+
+                    var str = ""
+                    while ({ count = zipInputStream.read(buffer); count }() != -1) {
+                        str += String(buffer, StandardCharsets.UTF_8)
+                    }
+
+                    return JSONObject(str)
+                }
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            zipInputStream.close()
+        }
+
+        return null
+    }
+
+    /**
+     * Return array of zip entries names except node_modules
+     */
+    fun getZipEntries(zipUri: Uri): Pair<MutableList<String>, MutableList<String>>? {
+        val zipInputStream = ZipInputStream(
+            BufferedInputStream(context.contentResolver.openInputStream(zipUri))
+        )
+
+        try {
+            var zipEntry: ZipEntry? = null
+            var zipEntries = mutableListOf<String>()
+            var zipEntriesNodeModules = mutableListOf<String>()
+            while ({ zipEntry = zipInputStream.nextEntry; zipEntry }() != null) {
+
+                if (!zipEntry!!.isDirectory) {
+                    if (!zipEntry?.name!!.contains(AppConstant.NODE_MODULES)) {
+
+                        zipEntries.add(zipEntry!!.name)
+                    } else {
+                        zipEntriesNodeModules.add(zipEntry!!.name)
+                    }
+                }
+            }
+
+            return Pair(zipEntries, zipEntriesNodeModules)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            zipInputStream.close()
+        }
+
+        return null
     }
 
 

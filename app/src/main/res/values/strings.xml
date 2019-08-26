@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ApplicationMigratoryPlatform</string>
+    <string name="app_name">Application Migratory Platform</string>
     <string name="main_activity_label">Application Migratory Platform</string>
 
     <!-- Strings related to activity_fresh_config -->
@@ -23,6 +23,19 @@
     <string name="file_system_permission_denied">Please grant permission for access file system. Or select `Internal
         storage` to continue.
     </string>
+
+    <!-- Strings related to activity_action_send_zip -->
     <string name="null_selected_dir">Please select a folder</string>
     <string name="not_writable_selected_dir">Selected folder is not writable. Please select another.</string>
+    <string name="title_action_send_zip_activity">App Details</string>
+    <string name="name_app_detail">Name:\u0020</string>
+    <string name="version_app_detail">\nVersion:\u0020</string>
+    <string name="description_app_detail">\nDescription:\u0020</string>
+    <string name="author_app_detail">\nAuthor:\u0020</string>
+    <string name="license_app_detail">\nLicense:\u0020</string>
+    <string name="incompatible_package_app_detail">Given package not compatible</string>
+    <string name="not_executable_app_detail">The package unable to execute. The package may be damaged or not support
+        for this platform.
+    </string>
+    <string name="extraction_failed_app_detail">Faild to extract package. Please try again.</string>
 </resources>

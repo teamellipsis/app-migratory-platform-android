@@ -9,6 +9,7 @@ class AppConstant {
 
         const val NODE_MODULES = "node_modules"
         const val NODE_MODULES_ZIP = "node_modules.zip"
+        const val PACKAGE_JSON = "package.json"
         const val ASSETS_PARENT_NAME = "node"
     }
 }

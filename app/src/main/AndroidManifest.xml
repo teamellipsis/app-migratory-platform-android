@@ -27,7 +27,10 @@
                 android:name=".AgentActivity"
                 android:theme="@style/AgentTheme">
         </activity>
-        <activity android:name=".ActionSendZipActivity">
+        <activity
+                android:name=".ActionSendZipActivity"
+                android:autoRemoveFromRecents="true"
+                android:launchMode="singleInstance">
             <intent-filter tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW"/>
                 <action android:name="android.intent.action.SEND"/>
