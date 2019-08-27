@@ -5,45 +5,50 @@ import android.os.Bundle
 import android.view.Window
 import kotlinx.android.synthetic.main.activity_agent.*
 import android.content.DialogInterface
+import android.graphics.drawable.Drawable
+import android.os.AsyncTask
 import android.support.v7.app.AlertDialog
 import android.webkit.WebView
-import android.util.Log
+import android.view.View
 import android.webkit.WebChromeClient
-import java.util.*
+import java.lang.Exception
+import java.net.HttpURLConnection
+import java.net.URL
 
 
 class AgentActivity : AppCompatActivity() {
 
+    private var webViewUrl: String? = null
+    private var appPath: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        getSupportActionBar()?.hide()
+        supportActionBar?.hide()
         setContentView(R.layout.activity_agent)
 
-        val url = intent.getStringExtra("WEB_VIEW_URL")
+        webView.visibility = View.GONE
+        appPath = intent.getStringExtra("APP_PATH")
+        imageView.setImageDrawable(Drawable.createFromPath("$appPath/splash_screen.png"))
+
+        webViewUrl = intent.getStringExtra("WEB_VIEW_URL")
         webView.settings.javaScriptEnabled = true
 
         webView.webChromeClient = object : WebChromeClient() {
 
             override fun onProgressChanged(view: WebView, progress: Int) {
-                if (progress == 0) {
-                    val date = Date()
-                    val time = date.getTime()
-                    Log.i("App-Migratory-Platform","start: " + time.toString())
-                }
+                progressBar.progress = progress
                 if (progress == 100) {
-                    val date = Date()
-                    val time = date.getTime()
-                    Log.i("App-Migratory-Platform","stop: " + time.toString())
+                    imageView.visibility = View.GONE
+                    webView.visibility = View.VISIBLE
                 }
             }
         }
 
-        webView.loadUrl(url)
+        HttpAsyncTask().execute()
     }
 
     override fun onBackPressed() {
-//        super.onBackPressed()
         val alertDialog = AlertDialog.Builder(this).create()
         alertDialog.setTitle("Alert")
         alertDialog.setMessage("Do you want to exit?")
@@ -56,5 +61,38 @@ class AgentActivity : AppCompatActivity() {
             DialogInterface.OnClickListener { dialog, which -> super.onBackPressed() }
         )
         alertDialog.show()
+    }
+
+    private inner class HttpAsyncTask : AsyncTask<URL, Int, Int>() {
+        override fun doInBackground(vararg urls: URL): Int? {
+            var code: Int? = null
+            val url = URL("$webViewUrl/__ping")
+
+            while (true) {
+                val urlConnection = url.openConnection() as HttpURLConnection
+                try {
+                    code = urlConnection.responseCode
+
+                } catch (e: Exception) {
+//                    e.printStackTrace()
+                } finally {
+                    urlConnection.disconnect()
+                }
+
+                if (code == HttpURLConnection.HTTP_OK) {
+                    break
+                }
+
+                Thread.sleep(16) // Since, devices display 60 frames per second
+            }
+
+            return code
+        }
+
+        override fun onProgressUpdate(vararg values: Int?) {}
+
+        override fun onPostExecute(result: Int?) {
+            webView.loadUrl(webViewUrl)
+        }
     }
 }
