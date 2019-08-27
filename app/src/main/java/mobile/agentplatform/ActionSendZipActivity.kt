@@ -22,6 +22,8 @@ class ActionSendZipActivity : AppCompatActivity() {
     private var zipEntries: MutableList<String>? = null
     private var zipEntriesNodeModules: MutableList<String>? = null
     private var extractPackageAsyncTask: ExtractPackageAsyncTask? = null
+    private var appName: String? = null
+    private var zipRootDirName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +55,11 @@ class ActionSendZipActivity : AppCompatActivity() {
         btnOpen.visibility = View.GONE
         btnCancel.visibility = View.VISIBLE
         editTxtAppName.isEnabled = true
+
+        zipRootDirName = fileSystem.getZipRootDirName(uri)
+        if (zipRootDirName!!.isNotEmpty()) {
+            editTxtAppName.setText(zipRootDirName)
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -121,7 +128,12 @@ class ActionSendZipActivity : AppCompatActivity() {
     }
 
     fun open(view: View) {
+        val agentManager = AgentManager(applicationContext)
+        val appsDir = appConfig.get(AppConstant.KEY_APPS_DIR)
+        val appDir = File(appsDir, appName)
 
+        agentManager.openApp(appDir)
+        finish()
     }
 
     private inner class CheckPackageJsonAsyncTask : AsyncTask<String, Int, JSONObject>() {
@@ -171,15 +183,19 @@ class ActionSendZipActivity : AppCompatActivity() {
             super.onPreExecute()
             progressBarExtract.max = zipEntries!!.size + zipEntriesNodeModules!!.size
             progressBarExtract.visibility = View.VISIBLE
+            appName = editTxtAppName.text.toString()
         }
 
         override fun doInBackground(vararg argv: String): Boolean {
-            val workingDir = appConfig.get(AppConstant.KEY_WORKING_DIR_TEMP)
-            val targetDirectory = File(workingDir, editTxtAppName.text.toString())
+            val appsDir = appConfig.get(AppConstant.KEY_APPS_DIR)
+            val targetDirectory = File(appsDir)
 
-            return fileSystem.unzipByIntent(uri, targetDirectory, this)
+            return fileSystem.unzipByIntent(uri, targetDirectory, appName, zipRootDirName, this)
         }
 
+        /**
+         * Make `publishProgress` public
+         */
         fun publishProgressCallBack(vararg values: Int?) {
             this.publishProgress(*values)
         }
@@ -196,6 +212,8 @@ class ActionSendZipActivity : AppCompatActivity() {
             } else {
                 txtExecutable.visibility = View.VISIBLE
                 txtExecutable.text = resources.getString(R.string.extraction_failed_app_detail)
+                btnExtract.isEnabled = true
+                editTxtAppName.isEnabled = true
             }
         }
     }

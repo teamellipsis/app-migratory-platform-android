@@ -2,7 +2,6 @@ package mobile.agentplatform
 
 import android.content.Context
 import android.net.Uri
-import android.os.AsyncTask
 import android.os.Environment
 import android.util.Log
 import org.json.JSONObject
@@ -248,6 +247,8 @@ class FileSystem {
     fun unzipByIntent(
         zipUri: Uri,
         targetDirectory: File,
+        appName: String?,
+        zipRootDirName: String?,
         asyncTask: ActionSendZipActivity.ExtractPackageAsyncTask?
     ): Boolean {
         val zipInputStream = ZipInputStream(
@@ -255,14 +256,23 @@ class FileSystem {
         )
         val BUFFER_SIZE = 2048
         var unzipSuccess = true
+        var isDiffAppName = false
+
+        if (appName != null && zipRootDirName != null && zipRootDirName != appName) {
+            isDiffAppName = true
+        }
 
         try {
             var zipEntry: ZipEntry? = null
             var count = 0
             var progress = 0
             val buffer = ByteArray(BUFFER_SIZE)
-            while ({ zipEntry = zipInputStream.nextEntry; zipEntry }() != null) {
-                val file = File(targetDirectory, zipEntry?.name)
+            while ({ zipEntry = zipInputStream.nextEntry; zipEntry }() != null && !asyncTask!!.isCancelled) {
+                var zipEntryName = zipEntry?.name
+                if (isDiffAppName) {
+                    zipEntryName = zipEntryName?.replaceFirst(zipRootDirName!!, appName!!, false)
+                }
+                val file = File(targetDirectory, zipEntryName)
                 val dir = if (zipEntry!!.isDirectory) file else file.parentFile
 
                 if (!dir.isDirectory && !dir.mkdirs()) {
@@ -284,10 +294,9 @@ class FileSystem {
                 asyncTask?.publishProgressCallBack(progress++)
 
             }
-        } catch (e: IllegalStateException) {
-            val date = Date()
-            val time = date.getTime()
-            Log.i("App-Migratory-Platform", "unzip finished: " + time.toString())
+        } catch (e: Exception) {
+            unzipSuccess = false
+            e.printStackTrace()
         } finally {
             zipInputStream.close()
         }
@@ -303,21 +312,23 @@ class FileSystem {
             BufferedInputStream(context.contentResolver.openInputStream(zipUri))
         )
         val BUFFER_SIZE = 2048
+        var str = ""
+        var success = false
 
         try {
             var zipEntry: ZipEntry? = null
-            var count = 0
+            var count: Int
             val buffer = ByteArray(BUFFER_SIZE)
             while ({ zipEntry = zipInputStream.nextEntry; zipEntry }() != null) {
 
                 if (zipEntry?.name!!.contains(AppConstant.PACKAGE_JSON) && !zipEntry?.name!!.contains(AppConstant.NODE_MODULES)) {
 
-                    var str = ""
                     while ({ count = zipInputStream.read(buffer); count }() != -1) {
                         str += String(buffer, StandardCharsets.UTF_8)
                     }
 
-                    return JSONObject(str)
+                    success = true
+                    break
                 }
             }
 
@@ -327,21 +338,23 @@ class FileSystem {
             zipInputStream.close()
         }
 
-        return null
+        return if (success) JSONObject(str) else null
     }
 
     /**
-     * Return array of zip entries names except node_modules
+     * Return array of zip entries names except directories
      */
     fun getZipEntries(zipUri: Uri): Pair<MutableList<String>, MutableList<String>>? {
         val zipInputStream = ZipInputStream(
             BufferedInputStream(context.contentResolver.openInputStream(zipUri))
         )
 
+        var zipEntries = mutableListOf<String>()
+        var zipEntriesNodeModules = mutableListOf<String>()
+        var failed = false
+
         try {
             var zipEntry: ZipEntry? = null
-            var zipEntries = mutableListOf<String>()
-            var zipEntriesNodeModules = mutableListOf<String>()
             while ({ zipEntry = zipInputStream.nextEntry; zipEntry }() != null) {
 
                 if (!zipEntry!!.isDirectory) {
@@ -354,15 +367,36 @@ class FileSystem {
                 }
             }
 
-            return Pair(zipEntries, zipEntriesNodeModules)
-
         } catch (e: Exception) {
+            failed = true
             e.printStackTrace()
         } finally {
             zipInputStream.close()
         }
 
-        return null
+        return if (failed) null else Pair(zipEntries, zipEntriesNodeModules)
+    }
+
+    fun getZipRootDirName(zipUri: Uri): String? {
+        val zipInputStream = ZipInputStream(
+            BufferedInputStream(context.contentResolver.openInputStream(zipUri))
+        )
+
+        var rootDirName = ""
+        var failed = false
+
+        try {
+            var zipEntry: ZipEntry? = zipInputStream.nextEntry
+            rootDirName = zipEntry?.name!!.replaceFirst(Regex("/.*$"), "")
+
+        } catch (e: Exception) {
+            failed = true
+            e.printStackTrace()
+        } finally {
+            zipInputStream.close()
+        }
+
+        return if (failed) null else rootDirName
     }
 
 
