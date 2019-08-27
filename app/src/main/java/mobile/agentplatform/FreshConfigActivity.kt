@@ -2,6 +2,7 @@ package mobile.agentplatform
 
 import android.Manifest
 import android.content.DialogInterface
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.AsyncTask
 import android.support.v7.app.AppCompatActivity
@@ -46,6 +47,12 @@ class FreshConfigActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
         viewConfirmation.visibility = View.GONE
 
         checkFileWritePermission()
+    }
+
+    fun startMain(view: View) {
+        val intent = Intent(applicationContext, MainActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
     private fun checkFileWritePermission() {
@@ -118,24 +125,47 @@ class FreshConfigActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
         }
     }
 
-    private inner class UnzipNodeModulesAsyncTask : AsyncTask<String, Int, Boolean>() {
-        override fun doInBackground(vararg argv: String): Boolean? {
+    inner class UnzipNodeModulesAsyncTask : AsyncTask<String, Int, Boolean>() {
+        override fun onPreExecute() {
+            super.onPreExecute()
             val workingDir = appConfig.get(AppConstant.KEY_WORKING_DIR_TEMP)
-            val file = File(workingDir, AppConstant.NODE_MODULES_ZIP)
-            val targetDirectory = File(workingDir)
-
-            return fileSystem.unzip(file, targetDirectory)
+            val zipFile = File(workingDir, AppConstant.NODE_MODULES_ZIP)
+            val progressMax = fileSystem.getZipEntriesCount(zipFile)
+            if (progressMax != null) {
+                progressBarExtract.max = progressMax.toInt()
+                progressBarExtract.visibility = View.VISIBLE
+            }
         }
 
-        override fun onProgressUpdate(vararg values: Int?) {}
+        override fun doInBackground(vararg argv: String): Boolean? {
+            val workingDir = appConfig.get(AppConstant.KEY_WORKING_DIR_TEMP)
+            val zipFile = File(workingDir, AppConstant.NODE_MODULES_ZIP)
+            val targetDirectory = File(workingDir)
+
+            return fileSystem.unzip(zipFile, targetDirectory, this)
+        }
+
+        /**
+         * Make `publishProgress` public
+         */
+        fun publishProgressCallBack(vararg values: Int?) {
+            this.publishProgress(*values)
+        }
+
+        override fun onProgressUpdate(vararg values: Int?) {
+            progressBarExtract.progress = values[0]!!
+        }
 
         override fun onPostExecute(success: Boolean?) {
+            progressBarExtract.visibility = View.GONE
             if (success!!) {
                 cleanFiles()
                 dot3.setImageResource(R.drawable.ic_tick_mark_dark)
                 printLog(R.string.extract_assets_ok)
                 val workingDir = appConfig.get(AppConstant.KEY_WORKING_DIR_TEMP)
                 appConfig.set(AppConstant.KEY_WORKING_DIR, workingDir)
+                appConfig.set(AppConstant.KEY_APPS_DIR, "$workingDir/${AppConstant.APPS_DIR_NAME}")
+                appConfig.set(AppConstant.KEY_PACKAGES_DIR, "$workingDir/${AppConstant.PACKAGES_DIR_NAME}")
             } else {
                 dot3.setImageResource(R.drawable.ic_cancel_dark)
                 printLog(R.string.extract_assets_fail)
@@ -167,28 +197,33 @@ class FreshConfigActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
             dot4.visibility = View.VISIBLE
             loader3.visibility = View.GONE
             txtProgress.visibility = View.GONE
+            btnStartMain.visibility = View.VISIBLE
         }
     }
 
     override fun onBackPressed() {
-        if (viewSelectLoc.visibility == View.VISIBLE) {
-            val alertDialog = AlertDialog.Builder(this).create()
-            alertDialog.setTitle("Do you want close the application?")
-            alertDialog.setButton(
-                AlertDialog.BUTTON_POSITIVE, "No",
-                DialogInterface.OnClickListener { dialog, which -> dialog.dismiss() }
-            )
-            alertDialog.setButton(
-                AlertDialog.BUTTON_NEGATIVE, "Yes",
-                DialogInterface.OnClickListener { dialog, which -> super.onBackPressed() }
-            )
-            alertDialog.show()
-        } else if (viewConfirmation.visibility == View.VISIBLE) {
-            viewConfirmation.visibility = View.GONE
-            viewSelectLoc.visibility = View.VISIBLE
-        } else if (viewDirChooser.visibility == View.VISIBLE) {
-            viewDirChooser.visibility = View.GONE
-            viewSelectLoc.visibility = View.VISIBLE
+        when {
+            viewSelectLoc.visibility == View.VISIBLE -> {
+                val alertDialog = AlertDialog.Builder(this).create()
+                alertDialog.setTitle("Do you want close the application?")
+                alertDialog.setButton(
+                    AlertDialog.BUTTON_POSITIVE, "No",
+                    DialogInterface.OnClickListener { dialog, which -> dialog.dismiss() }
+                )
+                alertDialog.setButton(
+                    AlertDialog.BUTTON_NEGATIVE, "Yes",
+                    DialogInterface.OnClickListener { dialog, which -> super.onBackPressed() }
+                )
+                alertDialog.show()
+            }
+            viewConfirmation.visibility == View.VISIBLE -> {
+                viewConfirmation.visibility = View.GONE
+                viewSelectLoc.visibility = View.VISIBLE
+            }
+            viewDirChooser.visibility == View.VISIBLE -> {
+                viewDirChooser.visibility = View.GONE
+                viewSelectLoc.visibility = View.VISIBLE
+            }
         }
     }
 

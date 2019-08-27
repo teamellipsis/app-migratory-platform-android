@@ -115,7 +115,7 @@ class FileSystem {
 
 //        parallelUnzip(file,targetDirectory)
 
-        unzip(file, targetDirectory)
+//        unzip(file, targetDirectory)
         return nodeDirectory.absolutePath
     }
 
@@ -151,8 +151,11 @@ class FileSystem {
     /**
      * Unzip given zip file into particular directory
      */
-    @Throws(IOException::class)
-    fun unzip(zipFile: File, targetDirectory: File): Boolean {
+    fun unzip(
+        zipFile: File,
+        targetDirectory: File,
+        asyncTask: FreshConfigActivity.UnzipNodeModulesAsyncTask?
+    ): Boolean {
         val BUFFER_SIZE = 2048//8192
         var unzipSuccess = true
 
@@ -162,7 +165,10 @@ class FileSystem {
 
         try {
             var zipEntry: ZipEntry? = null
+            var count = 0
+            var progress = 0
             val buffer = ByteArray(BUFFER_SIZE)
+
             while ({ zipEntry = zipInputStream.nextEntry; zipEntry }() != null) {
                 val file = File(targetDirectory, zipEntry?.name)
                 val dir = if (zipEntry!!.isDirectory) file else file.parentFile
@@ -177,11 +183,12 @@ class FileSystem {
 
                 val fileOutputStream = FileOutputStream(file)
                 fileOutputStream.use { fileOutputStream ->
-                    var count = 0
                     while ({ count = zipInputStream.read(buffer); count }() != -1) {
                         fileOutputStream.write(buffer, 0, count)
                     }
                 }
+
+                asyncTask?.publishProgressCallBack(progress++)
             }
 
         } catch (e: Exception) {
@@ -192,6 +199,33 @@ class FileSystem {
         }
 
         return unzipSuccess
+    }
+
+    fun getZipEntriesCount(zipFile: File): Long? {
+        val zipInputStream = ZipInputStream(
+            BufferedInputStream(FileInputStream(zipFile))
+        )
+        var count: Long = 0
+        var failed = false
+
+        try {
+            var zipEntry: ZipEntry? = null
+
+            while ({ zipEntry = zipInputStream.nextEntry; zipEntry }() != null) {
+
+                if (!zipEntry!!.isDirectory) {
+                    count++
+                }
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            failed = true
+        } finally {
+            zipInputStream.close()
+        }
+
+        return if (failed) null else count
     }
 
     /**
