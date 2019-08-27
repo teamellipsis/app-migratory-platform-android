@@ -10,6 +10,7 @@ class AppFile : File {
     constructor(parent: String?, child: String?) : super(parent, child)
     constructor(parent: File?, child: String?) : super(parent, child)
     constructor(uri: URI?) : super(uri)
+    constructor(file: File?) : super(file?.absolutePath)
     constructor(pathname: String?, isPointer: Boolean) : super(pathname) {
         this.isPointer = isPointer
     }

@@ -37,5 +37,8 @@
     <string name="not_executable_app_detail">The package unable to execute. The package may be damaged or not support
         for this platform.
     </string>
-    <string name="extraction_failed_app_detail">Faild to extract package. Please try again.</string>
+    <string name="extraction_failed_app_detail">Failed to extract package. Please try again.</string>
+
+    <!-- Strings related to app_management_activity -->
+    <string name="no_apps_found_app_management_activity">No apps found</string>
 </resources>
