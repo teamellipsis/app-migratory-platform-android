@@ -23,6 +23,7 @@ class AgentManager(context: Context) {
         val intent = Intent(applicationContext, AgentActivity::class.java).apply {
             putExtra("WEB_VIEW_URL", webViewUrl)
             putExtra("APP_PATH", appPath.absolutePath)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         applicationContext.startActivity(intent)
     }

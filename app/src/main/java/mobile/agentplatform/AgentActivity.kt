@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.Window
 import kotlinx.android.synthetic.main.activity_agent.*
 import android.content.DialogInterface
+import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.AsyncTask
 import android.support.v7.app.AlertDialog
@@ -58,7 +59,11 @@ class AgentActivity : AppCompatActivity() {
         )
         alertDialog.setButton(
             AlertDialog.BUTTON_NEGATIVE, "Yes",
-            DialogInterface.OnClickListener { dialog, which -> super.onBackPressed() }
+            DialogInterface.OnClickListener { dialog, which ->
+                val intent = Intent(applicationContext, AppManagementActivity::class.java)
+                startActivity(intent)
+                super.onBackPressed()
+            }
         )
         alertDialog.show()
     }
@@ -66,7 +71,7 @@ class AgentActivity : AppCompatActivity() {
     private inner class HttpAsyncTask : AsyncTask<URL, Int, Int>() {
         override fun doInBackground(vararg urls: URL): Int? {
             var code: Int? = null
-            val url = URL("$webViewUrl/__ping")
+            val url = URL("$webViewUrl/${AppConstant.PING_ENDPOINT}")
 
             while (true) {
                 val urlConnection = url.openConnection() as HttpURLConnection
