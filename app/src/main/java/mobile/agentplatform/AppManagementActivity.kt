@@ -30,6 +30,13 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
 
         fileSystem = FileSystem(applicationContext)
         appConfig = AppConfig(applicationContext)
+
+        if (appConfig.get(AppConstant.KEY_WORKING_DIR).isEmpty()) {
+            val intent = Intent(applicationContext, FreshConfigActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
         context = this
 
         arrayAdapter = ArrayAdapter(this, R.layout.app_list_item, R.id.listItemText, listFiles)
