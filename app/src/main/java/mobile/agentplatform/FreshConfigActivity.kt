@@ -50,7 +50,7 @@ class FreshConfigActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
     }
 
     fun startMain(view: View) {
-        val intent = Intent(applicationContext, MainActivity::class.java)
+        val intent = Intent(applicationContext, AppManagementActivity::class.java)
         startActivity(intent)
         finish()
     }
