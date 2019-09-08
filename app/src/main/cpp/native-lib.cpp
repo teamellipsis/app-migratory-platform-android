@@ -112,7 +112,21 @@ void *start_routine(void *arguments) {
     int argc = args->argc;
     char **argv = args->argv;
 
-    int node_result = node::Start(argc, argv);
-    __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "node_result: %d", node_result);
+    int pid;
+    pid = fork();
+    if (pid == 0) {
+        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "getpid-c: %d", getpid());
+        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "getppid-c: %d", getppid());
+
+        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "argc: %d", args->argc);
+        for (int i = 0; i < argc; i++) {
+            __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "argv[%d]: %s", i, argv[i]);
+        }
+        int node_result = node::Start(argc, argv);
+        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "node_result: %d", node_result);
+    } else {
+        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "getpid-p: %d", getpid());
+        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "getppid-p: %d", getppid());
+    }
     return NULL;
 }
