@@ -15,7 +15,7 @@ import java.io.File
 
 class ActionSendZipActivity : AppCompatActivity() {
 
-    private lateinit var fileSystem: FileSystem
+    private lateinit var fileManager: FileManager
     private lateinit var appConfig: AppConfig
     private lateinit var uri: Uri
     private var packageJson: JSONObject? = null
@@ -38,7 +38,7 @@ class ActionSendZipActivity : AppCompatActivity() {
             intent.getParcelableExtra(Intent.EXTRA_STREAM) as Uri
         }
 
-        fileSystem = FileSystem(applicationContext)
+        fileManager = FileManager(applicationContext)
         appConfig = AppConfig(applicationContext)
 
         CheckPackageJsonAsyncTask().execute()
@@ -56,7 +56,7 @@ class ActionSendZipActivity : AppCompatActivity() {
         btnCancel.visibility = View.VISIBLE
         editTxtAppName.isEnabled = true
 
-        zipRootDirName = fileSystem.getZipRootDirName(uri)
+        zipRootDirName = fileManager.getZipRootDirName(uri)
         if (zipRootDirName!!.isNotEmpty()) {
             editTxtAppName.setText(zipRootDirName)
         }
@@ -138,7 +138,7 @@ class ActionSendZipActivity : AppCompatActivity() {
 
     private inner class CheckPackageJsonAsyncTask : AsyncTask<String, Int, JSONObject>() {
         override fun doInBackground(vararg argv: String): JSONObject? {
-            return fileSystem.scanPackageJson(uri)
+            return fileManager.scanPackageJson(uri)
         }
 
         override fun onProgressUpdate(vararg values: Int?) {}
@@ -159,7 +159,7 @@ class ActionSendZipActivity : AppCompatActivity() {
 
     private inner class CheckPrerequisitesAsyncTask : AsyncTask<String, Int, Boolean>() {
         override fun doInBackground(vararg argv: String): Boolean {
-            val entries = fileSystem.getZipEntries(uri)
+            val entries = fileManager.getZipEntries(uri)
             zipEntries = entries?.a
             zipEntriesNodeModules = entries?.b
             return AgentRules.checkRequiredFiles(zipEntries!!)
@@ -190,7 +190,7 @@ class ActionSendZipActivity : AppCompatActivity() {
             val appsDir = appConfig.get(AppConstant.KEY_APPS_DIR)
             val targetDirectory = File(appsDir)
 
-            return fileSystem.unzipByIntent(uri, targetDirectory, appName, zipRootDirName, this)
+            return fileManager.unzipByIntent(uri, targetDirectory, appName, zipRootDirName, this)
         }
 
         /**

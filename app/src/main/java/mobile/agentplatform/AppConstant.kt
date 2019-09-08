@@ -15,7 +15,6 @@ class AppConstant {
         const val ASSETS_PARENT_NAME = "node"
         const val APPS_DIR_NAME = "apps"
         const val PACKAGES_DIR_NAME = "packages"
-
-        const val PING_ENDPOINT = "__ping"
+        const val SERVER_JSON_FILE = "SERVER"
     }
 }

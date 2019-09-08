@@ -16,15 +16,15 @@ class DirectoryChooserFragment : Fragment(), AdapterView.OnItemClickListener {
     private var listener: OnFragmentInteractionListener? = null
     private var listFiles: MutableList<AppFile> = mutableListOf()
     private lateinit var adapter: ArrayAdapter<AppFile>
-    private lateinit var fileSystem: FileSystem
+    private lateinit var fileManager: FileManager
     private var selectedDir: AppFile? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        fileSystem = FileSystem(context!!)
+        fileManager = FileManager(context!!)
         adapter = ArrayAdapter(context, android.R.layout.simple_list_item_1, listFiles)
-        listFiles.add(AppFile(fileSystem.getExternalStorageDir()))
+        listFiles.add(AppFile(fileManager.getExternalStorageDir()))
     }
 
     override fun onCreateView(

@@ -12,8 +12,9 @@ import android.support.v7.app.AlertDialog
 import android.webkit.WebView
 import android.view.View
 import android.webkit.WebChromeClient
-import java.lang.Exception
-import java.net.HttpURLConnection
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.File
 import java.net.URL
 
 
@@ -21,6 +22,7 @@ class AgentActivity : AppCompatActivity() {
 
     private var webViewUrl: String? = null
     private var appPath: String? = null
+    private var serverJson: JSONObject? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +34,14 @@ class AgentActivity : AppCompatActivity() {
         appPath = intent.getStringExtra("APP_PATH")
         imageView.setImageDrawable(Drawable.createFromPath("$appPath/splash_screen.png"))
 
-        webViewUrl = intent.getStringExtra("WEB_VIEW_URL")
+        val serverJsonStr = intent.getStringExtra("SERVER_JSON_STR")
+        if (serverJsonStr !== null) {
+            try {
+                serverJson = JSONObject(serverJsonStr)
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
+        }
         webView.settings.javaScriptEnabled = true
 
         webView.webChromeClient = object : WebChromeClient() {
@@ -46,7 +55,7 @@ class AgentActivity : AppCompatActivity() {
             }
         }
 
-        HttpAsyncTask().execute()
+        ServerListeningAsyncTask().execute()
     }
 
     override fun onBackPressed() {
@@ -68,35 +77,39 @@ class AgentActivity : AppCompatActivity() {
         alertDialog.show()
     }
 
-    private inner class HttpAsyncTask : AsyncTask<URL, Int, Int>() {
+    private inner class ServerListeningAsyncTask : AsyncTask<URL, Int, Int>() {
         override fun doInBackground(vararg urls: URL): Int? {
-            var code: Int? = null
-            val url = URL("$webViewUrl/${AppConstant.PING_ENDPOINT}")
+            val oldTime = serverJson?.getString("time")
+            var port: Int = -1
 
-            while (true) {
-                val urlConnection = url.openConnection() as HttpURLConnection
-                try {
-                    code = urlConnection.responseCode
-
-                } catch (e: Exception) {
-//                    e.printStackTrace()
-                } finally {
-                    urlConnection.disconnect()
-                }
-
-                if (code == HttpURLConnection.HTTP_OK) {
-                    break
+            while (port == -1) {
+                var fileManager = FileManager(applicationContext)
+                val serverFile = File(appPath, AppConstant.SERVER_JSON_FILE)
+                val serverJsonStr = fileManager.getFileContent(serverFile)
+                if (serverJsonStr !== null) {
+                    try {
+                        val server = JSONObject(serverJsonStr)
+                        val newTime = server.getString("time")
+                        if (oldTime == null) {
+                            port = server.getJSONObject("server").getInt("port")
+                        } else if (oldTime != newTime) {
+                            port = server.getJSONObject("server").getInt("port")
+                        }
+                    } catch (e: JSONException) {
+                        e.printStackTrace()
+                    }
                 }
 
                 Thread.sleep(16) // Since, devices display 60 frames per second
             }
 
-            return code
+            return port
         }
 
         override fun onProgressUpdate(vararg values: Int?) {}
 
-        override fun onPostExecute(result: Int?) {
+        override fun onPostExecute(port: Int?) {
+            webViewUrl = "http://localhost:$port"
             webView.loadUrl(webViewUrl)
         }
     }

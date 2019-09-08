@@ -17,10 +17,10 @@ import android.support.v7.app.AlertDialog
 class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
 
     private var listFiles: MutableList<AppFile> = mutableListOf()
-    private lateinit var fileSystem: FileSystem
+    private lateinit var fileManager: FileManager
     private lateinit var appConfig: AppConfig
     lateinit var context: Context
-    lateinit var arrayAdapter: ArrayAdapter<AppFile>
+    private lateinit var arrayAdapter: ArrayAdapter<AppFile>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,7 +28,7 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
 
         listView.onItemClickListener = this
 
-        fileSystem = FileSystem(applicationContext)
+        fileManager = FileManager(applicationContext)
         appConfig = AppConfig(applicationContext)
 
         if (appConfig.get(AppConstant.KEY_WORKING_DIR).isEmpty()) {
@@ -49,7 +49,7 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
         textView.visibility = View.GONE
 
         listFiles.clear()
-        var appsDir = File(appConfig.get(AppConstant.KEY_APPS_DIR))
+        val appsDir = File(appConfig.get(AppConstant.KEY_APPS_DIR))
         if (appsDir.exists()) {
             for (file in appsDir.listFiles()) {
                 listFiles.add(AppFile(file))
@@ -69,7 +69,7 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
     }
 
     private fun openDialog(appPath: File) {
-        val alertDialog: AlertDialog? = this?.let {
+        val alertDialog: AlertDialog? = this.let {
             val builder = AlertDialog.Builder(it)
             builder.apply {
                 setTitle(appPath.name)
@@ -89,7 +89,7 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
                                 // TODO(Packaging should move to async task)
                                 val packagesDir = File(appConfig.get(AppConstant.KEY_PACKAGES_DIR))
                                 packagesDir.mkdirs()
-                                fileSystem.zipDir(appPath, File(packagesDir, appPath.name + ".zip"))
+                                fileManager.zipDir(appPath, File(packagesDir, appPath.name + ".zip"))
                             }
                             AppDialogOptions.Send.ordinal -> {
                                 // TODO(Check package exist before send)

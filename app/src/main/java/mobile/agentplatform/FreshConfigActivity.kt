@@ -19,14 +19,14 @@ import java.io.File
 class FreshConfigActivity : AppCompatActivity(), ActivityCompat.OnRequestPermissionsResultCallback,
     DirectoryChooserFragment.OnFragmentInteractionListener {
 
-    lateinit var fileSystem: FileSystem
+    lateinit var fileManager: FileManager
     lateinit var appConfig: AppConfig
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fresh_config)
 
-        fileSystem = FileSystem(applicationContext)
+        fileManager = FileManager(applicationContext)
         appConfig = AppConfig(applicationContext)
     }
 
@@ -34,7 +34,7 @@ class FreshConfigActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
         val radioBtnText = findViewById<RadioButton>(radioGroupLoc.checkedRadioButtonId).text.toString()
 
         if (radioBtnText == resources.getString(R.string.radio1_activity_fresh_config)) {
-            appConfig.set(AppConstant.KEY_WORKING_DIR_TEMP, fileSystem.getFileDir())
+            appConfig.set(AppConstant.KEY_WORKING_DIR_TEMP, fileManager.getFileDir())
             viewConfirmation.visibility = View.VISIBLE
             viewSelectLoc.visibility = View.GONE
         } else {
@@ -101,7 +101,7 @@ class FreshConfigActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
     private inner class CopyAssetsAsyncTask : AsyncTask<String, Int, Boolean>() {
         override fun doInBackground(vararg argv: String): Boolean? {
             val workingDir = appConfig.get(AppConstant.KEY_WORKING_DIR_TEMP)
-            return fileSystem.copyAssetsToWorkingDir(
+            return fileManager.copyAssetsToWorkingDir(
                 AppConstant.ASSETS_PARENT_NAME,
                 AppConstant.NODE_MODULES_ZIP,
                 workingDir
@@ -130,7 +130,7 @@ class FreshConfigActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
             super.onPreExecute()
             val workingDir = appConfig.get(AppConstant.KEY_WORKING_DIR_TEMP)
             val zipFile = File(workingDir, AppConstant.NODE_MODULES_ZIP)
-            val progressMax = fileSystem.getZipEntriesCount(zipFile)
+            val progressMax = fileManager.getZipEntriesCount(zipFile)
             if (progressMax != null) {
                 progressBarExtract.max = progressMax.toInt()
                 progressBarExtract.visibility = View.VISIBLE
@@ -142,7 +142,7 @@ class FreshConfigActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
             val zipFile = File(workingDir, AppConstant.NODE_MODULES_ZIP)
             val targetDirectory = File(workingDir)
 
-            return fileSystem.unzip(zipFile, targetDirectory, this)
+            return fileManager.unzip(zipFile, targetDirectory, this)
         }
 
         /**
@@ -181,7 +181,7 @@ class FreshConfigActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
             val workingDir = appConfig.get(AppConstant.KEY_WORKING_DIR_TEMP)
             val file = File(workingDir, AppConstant.NODE_MODULES_ZIP)
 
-            return fileSystem.deleteFile(file)
+            return fileManager.deleteFile(file)
         }
 
         override fun onProgressUpdate(vararg values: Int?) {}

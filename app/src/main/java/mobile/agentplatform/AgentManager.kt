@@ -9,6 +9,9 @@ class AgentManager(context: Context) {
     private var applicationContext: Context = context
 
     fun openApp(appPath: File) {
+        var fileManager = FileManager(applicationContext)
+        val serverFile = File(appPath,AppConstant.SERVER_JSON_FILE)
+        val serverJsonStr = fileManager.getFileContent(serverFile)
         try {
             var projectThread = Thread(Runnable {
                 val nativeClient = NativeClient()
@@ -19,9 +22,8 @@ class AgentManager(context: Context) {
             e.printStackTrace()
         }
 
-        val webViewUrl = "http://localhost:3000"  // TODO(need to get through Node.js process)
         val intent = Intent(applicationContext, AgentActivity::class.java).apply {
-            putExtra("WEB_VIEW_URL", webViewUrl)
+            putExtra("SERVER_JSON_STR", serverJsonStr)
             putExtra("APP_PATH", appPath.absolutePath)
             addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
             addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)

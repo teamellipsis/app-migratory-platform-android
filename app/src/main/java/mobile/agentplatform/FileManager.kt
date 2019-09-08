@@ -3,6 +3,7 @@ package mobile.agentplatform
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import org.json.JSONObject
 import java.io.*
 import java.nio.charset.StandardCharsets
@@ -10,7 +11,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
-class FileSystem {
+class FileManager {
 
     var context: Context
 
@@ -374,5 +375,23 @@ class FileSystem {
                 bufferedInputStream.close()
             }
         }
+    }
+
+    fun getFileContent(file: File): String? {
+        var fileContent = ""
+        try {
+            val stream = FileInputStream(file)
+            val inputReader = InputStreamReader(stream)
+            val buffReader = BufferedReader(inputReader)
+            var line: String? = null
+            while ({ line = buffReader.readLine(); line }() != null) {
+                fileContent += line
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+
+        return fileContent
     }
 }
