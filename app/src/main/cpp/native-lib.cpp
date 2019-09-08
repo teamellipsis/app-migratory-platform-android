@@ -44,13 +44,6 @@ Java_mobile_agentplatform_NativeClient_stringFromJNI(JNIEnv *env, jobject thiz) 
     return env->NewStringUTF("Hello from JNI !  Compiled with ABI " ABI ".");
 }
 
-struct node_args {
-    int argc;
-    char **argv;
-};
-
-extern "C" void *start_routine(void *arguments);
-
 extern "C" JNIEXPORT jint JNICALL
 Java_mobile_agentplatform_NativeClient_startNodeWithArguments(
         JNIEnv *env,
@@ -84,49 +77,20 @@ Java_mobile_agentplatform_NativeClient_startNodeWithArguments(
         current_args_position += strlen(current_args_position) + 1;
     }
 
-    pthread_t node_thread;
-    struct node_args *args = (struct node_args *) malloc(sizeof(struct node_args));
-    args->argc = argument_count;
-    args->argv = argv;
+    int pid;
+    pid = fork();
+    if (pid == 0) {
+        __android_log_print(ANDROID_LOG_INFO, "NativeClient", "getpid-c: %d", getpid());
+        __android_log_print(ANDROID_LOG_INFO, "NativeClient", "getppid-c: %d", getppid());
 
-    pthread_create(&node_thread, NULL, start_routine, args);
-    __android_log_print(ANDROID_LOG_INFO, "NativeClient", "args->argc: %d", args->argc);
-    for (int i = 0; i < args->argc; i++) {
-        __android_log_print(ANDROID_LOG_INFO, "NativeClient", "argv[%d]: %s", i, args->argv[i]);
+        int node_result = node::Start(argument_count, argv);
+        __android_log_print(ANDROID_LOG_INFO, "NativeClient", "node_result: %d", node_result);
+    } else {
+        __android_log_print(ANDROID_LOG_INFO, "NativeClient", "getpid-p: %d", getpid());
+        __android_log_print(ANDROID_LOG_INFO, "NativeClient", "getppid-p: %d", getppid());
     }
-
-    __android_log_print(ANDROID_LOG_INFO, "NativeClient", "&node_thread: %ld", &node_thread);
-    __android_log_print(ANDROID_LOG_INFO, "NativeClient", "&args: %ld", args);
-    pthread_join(node_thread, NULL);
-    __android_log_print(ANDROID_LOG_INFO, "NativeClient", "getpid-callee: %d", getpid());
-    __android_log_print(ANDROID_LOG_INFO, "NativeClient", "getppid-callee: %d", getppid());
 
     free(args_buffer);
 
     return jint(0);
-}
-
-void *start_routine(void *arguments) {
-    struct node_args *args = (struct node_args *) arguments;
-
-    int argc = args->argc;
-    char **argv = args->argv;
-
-    int pid;
-    pid = fork();
-    if (pid == 0) {
-        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "getpid-c: %d", getpid());
-        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "getppid-c: %d", getppid());
-
-        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "argc: %d", args->argc);
-        for (int i = 0; i < argc; i++) {
-            __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "argv[%d]: %s", i, argv[i]);
-        }
-        int node_result = node::Start(argc, argv);
-        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "node_result: %d", node_result);
-    } else {
-        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "getpid-p: %d", getpid());
-        __android_log_print(ANDROID_LOG_INFO, "NativeClient-start_routine", "getppid-p: %d", getppid());
-    }
-    return NULL;
 }
