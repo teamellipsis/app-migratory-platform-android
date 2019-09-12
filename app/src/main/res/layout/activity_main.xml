@@ -10,7 +10,7 @@
     <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:context=".AppManagementActivity">
+            tools:context=".MainActivity">
 
         <android.support.design.widget.AppBarLayout
                 android:layout_height="wrap_content"
@@ -26,21 +26,12 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <LinearLayout
-                android:orientation="vertical"
+        <FrameLayout
+                android:id="@+id/content_frame"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_margin="5dp"
                 android:layout_below="@id/appBar">
-            <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:id="@+id/textView" android:visibility="visible"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                    android:textAlignment="center" android:layout_margin="20dp"/>
-            <ListView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" android:id="@+id/listView"/>
-        </LinearLayout>
+        </FrameLayout>
     </RelativeLayout>
 
     <android.support.design.widget.NavigationView

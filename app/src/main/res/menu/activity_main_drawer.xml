@@ -12,15 +12,10 @@
                 android:id="@+id/nav_devices"
                 android:icon="@drawable/ic_menu_devices"
                 android:title="Devices"/>
+        <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Sharing"/>
     </group>
-
-    <item android:title="Communicate">
-        <menu>
-            <item
-                    android:id="@+id/nav_share"
-                    android:icon="@drawable/ic_menu_share"
-                    android:title="Sharing"/>
-        </menu>
-    </item>
 
 </menu>

@@ -18,6 +18,7 @@
                 android:name=".AgentActivity"
                 android:theme="@style/AgentTheme"
                 android:autoRemoveFromRecents="true"
+                android:configChanges="screenSize|orientation"
                 android:documentLaunchMode="always">
         </activity>
         <activity
@@ -45,10 +46,10 @@
         </provider>
 
         <activity
-                android:name=".AppManagementActivity"
+                android:name=".MainActivity"
                 android:launchMode="singleInstance"
                 android:theme="@style/AppManagementTheme"
-                android:label="@string/title_app_management_activity">
+                android:label="@string/title_app_management_fragment">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

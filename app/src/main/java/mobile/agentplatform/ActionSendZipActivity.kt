@@ -119,7 +119,7 @@ class ActionSendZipActivity : AppCompatActivity() {
             AlertDialog.BUTTON_NEGATIVE, "Yes",
             DialogInterface.OnClickListener { dialog, which ->
                 extractPackageAsyncTask?.cancel(true)
-                val intent = Intent(applicationContext, AppManagementActivity::class.java)
+                val intent = Intent(applicationContext, MainActivity::class.java)
                 startActivity(intent)
                 finish()
             }

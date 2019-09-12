@@ -39,9 +39,15 @@
     </string>
     <string name="extraction_failed_app_detail">Failed to extract package. Please try again.</string>
 
-    <!-- Strings related to app_management_activity -->
-    <string name="title_app_management_activity">Apps</string>
-    <string name="no_apps_found_app_management_activity">No apps found</string>
+    <!-- Strings related to app_management_fragment -->
+    <string name="title_app_management_fragment">Apps</string>
+    <string name="no_apps_found_app_management_fragment">No apps found</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <!-- Strings related to devices_fragment -->
+    <string name="title_devices_fragment">Devices</string>
+
+    <!-- Strings related to sharing_fragment -->
+    <string name="title_sharing_fragment">Sharing</string>
 </resources>

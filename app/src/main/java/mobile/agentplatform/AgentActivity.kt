@@ -69,7 +69,7 @@ class AgentActivity : AppCompatActivity() {
         alertDialog.setButton(
             AlertDialog.BUTTON_NEGATIVE, "Yes",
             DialogInterface.OnClickListener { dialog, which ->
-                val intent = Intent(applicationContext, AppManagementActivity::class.java)
+                val intent = Intent(applicationContext, MainActivity::class.java)
                 startActivity(intent)
                 super.onBackPressed()
             }

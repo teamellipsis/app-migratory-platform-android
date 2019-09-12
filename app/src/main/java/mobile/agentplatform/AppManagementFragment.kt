@@ -1,62 +1,43 @@
 package mobile.agentplatform
 
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.support.design.widget.NavigationView
+import android.support.v4.app.Fragment
+import android.support.v4.content.FileProvider
+import android.support.v7.app.AlertDialog
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import kotlinx.android.synthetic.main.activity_app_management.*
+import kotlinx.android.synthetic.main.fragment_app_management.*
 import java.io.File
-import android.support.v4.content.FileProvider
-import android.support.v4.view.GravityCompat
-import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.app.AlertDialog
-import android.view.MenuItem
-import android.view.Window
 
 
-class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
-    NavigationView.OnNavigationItemSelectedListener {
+class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener {
     private var listFiles: MutableList<AppFile> = mutableListOf()
     private lateinit var fileManager: FileManager
     private lateinit var appConfig: AppConfig
-    lateinit var context: Context
     private lateinit var arrayAdapter: ArrayAdapter<AppFile>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestWindowFeature(Window.FEATURE_NO_TITLE)
-        supportActionBar?.hide()
-        setContentView(R.layout.activity_app_management)
-        setSupportActionBar(appToolbar)
 
-        val toggle = ActionBarDrawerToggle(
-            this, drawer_layout, appToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
-        )
-        drawer_layout.addDrawerListener(toggle)
-        toggle.syncState()
+        fileManager = FileManager(context?.applicationContext!!)
+        appConfig = AppConfig(context?.applicationContext!!)
 
-        nav_view.setNavigationItemSelectedListener(this)
-
-        listView.onItemClickListener = this
-
-        fileManager = FileManager(applicationContext)
-        appConfig = AppConfig(applicationContext)
-
-        if (appConfig.get(AppConstant.KEY_WORKING_DIR).isEmpty()) {
-            val intent = Intent(applicationContext, FreshConfigActivity::class.java)
-            startActivity(intent)
-            finish()
-        }
-
-        context = this
-
-        arrayAdapter = ArrayAdapter(this, R.layout.app_list_item, R.id.listItemText, listFiles)
+        arrayAdapter = ArrayAdapter(context, R.layout.app_list_item, R.id.listItemText, listFiles)
         arrayAdapter.setNotifyOnChange(true)
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.fragment_app_management, container, false)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        listView.onItemClickListener = this
     }
 
     override fun onResume() {
@@ -73,37 +54,11 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
         }
 
         if (listFiles.isEmpty()) {
-            textView.text = resources.getString(R.string.no_apps_found_app_management_activity)
+            textView.text = resources.getString(R.string.no_apps_found_app_management_fragment)
             textView.visibility = View.VISIBLE
         }
 
         listView.adapter = arrayAdapter
-    }
-
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.nav_apps -> {
-                val intent = Intent(this, AppManagementActivity::class.java)
-                startActivity(intent)
-            }
-            R.id.nav_devices -> {
-
-            }
-            R.id.nav_share -> {
-
-            }
-        }
-
-        drawer_layout.closeDrawer(GravityCompat.START)
-        return true
-    }
-
-    override fun onBackPressed() {
-        if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
-            drawer_layout.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
-        }
     }
 
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -112,7 +67,7 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
 
     private fun openDialog(appPath: File) {
         val alertDialog: AlertDialog? = this.let {
-            val builder = AlertDialog.Builder(it)
+            val builder = AlertDialog.Builder(context!!)
             builder.apply {
                 setTitle(appPath.name)
                 setItems(arrayOf(
@@ -138,7 +93,7 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
                                 val file = File(appConfig.get(AppConstant.KEY_PACKAGES_DIR), appPath.name + ".zip")
                                 val fileUri = FileProvider.getUriForFile(
                                     context,
-                                    applicationContext.packageName + ".provider",
+                                    context.packageName + ".provider",
                                     file
                                 )
 
@@ -149,7 +104,7 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
                                     type = "application/zip"
                                 }
 
-                                if (sendIntent.resolveActivity(packageManager) != null) {
+                                if (sendIntent.resolveActivity(context.packageManager) != null) {
                                     startActivity(sendIntent)
                                 }
                             }
@@ -174,7 +129,7 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
     }
 
     private fun openApp(appPath: File) {
-        val agentManager = AgentManager(applicationContext)
+        val agentManager = AgentManager(context!!)
         agentManager.openApp(appPath)
     }
 }
