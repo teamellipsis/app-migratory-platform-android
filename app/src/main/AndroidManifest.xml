@@ -48,8 +48,7 @@
         <activity
                 android:name=".MainActivity"
                 android:launchMode="singleInstance"
-                android:theme="@style/AppManagementTheme"
-                android:label="@string/title_app_management_fragment">
+                android:theme="@style/AppManagementTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

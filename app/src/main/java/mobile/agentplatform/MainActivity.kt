@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         supportActionBar?.hide()
         setContentView(R.layout.activity_main)
+        appToolbar.title = resources.getString(R.string.title_app_management_fragment)
         setSupportActionBar(appToolbar)
 
         val toggle = ActionBarDrawerToggle(
