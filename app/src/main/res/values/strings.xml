@@ -40,5 +40,8 @@
     <string name="extraction_failed_app_detail">Failed to extract package. Please try again.</string>
 
     <!-- Strings related to app_management_activity -->
+    <string name="title_app_management_activity">Apps</string>
     <string name="no_apps_found_app_management_activity">No apps found</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>

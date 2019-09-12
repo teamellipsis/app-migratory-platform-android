@@ -23,7 +23,6 @@
         <activity
                 android:name=".ActionSendZipActivity"
                 android:autoRemoveFromRecents="true"
-                android:excludeFromRecents="true"
                 android:documentLaunchMode="intoExisting">
             <intent-filter tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW"/>
@@ -47,7 +46,9 @@
 
         <activity
                 android:name=".AppManagementActivity"
-                android:launchMode="singleInstance">
+                android:launchMode="singleInstance"
+                android:theme="@style/AppManagementTheme"
+                android:label="@string/title_app_management_activity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

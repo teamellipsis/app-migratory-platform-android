@@ -5,17 +5,22 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.design.widget.NavigationView
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.activity_app_management.*
 import java.io.File
 import android.support.v4.content.FileProvider
+import android.support.v4.view.GravityCompat
+import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AlertDialog
+import android.view.MenuItem
+import android.view.Window
 
 
-class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListener {
-
+class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
+    NavigationView.OnNavigationItemSelectedListener {
     private var listFiles: MutableList<AppFile> = mutableListOf()
     private lateinit var fileManager: FileManager
     private lateinit var appConfig: AppConfig
@@ -24,7 +29,18 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
+        supportActionBar?.hide()
         setContentView(R.layout.activity_app_management)
+        setSupportActionBar(appToolbar)
+
+        val toggle = ActionBarDrawerToggle(
+            this, drawer_layout, appToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
+        )
+        drawer_layout.addDrawerListener(toggle)
+        toggle.syncState()
+
+        nav_view.setNavigationItemSelectedListener(this)
 
         listView.onItemClickListener = this
 
@@ -62,6 +78,32 @@ class AppManagementActivity : AppCompatActivity(), AdapterView.OnItemClickListen
         }
 
         listView.adapter = arrayAdapter
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.nav_apps -> {
+                val intent = Intent(this, AppManagementActivity::class.java)
+                startActivity(intent)
+            }
+            R.id.nav_devices -> {
+
+            }
+            R.id.nav_share -> {
+
+            }
+        }
+
+        drawer_layout.closeDrawer(GravityCompat.START)
+        return true
+    }
+
+    override fun onBackPressed() {
+        if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+            drawer_layout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
     }
 
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
