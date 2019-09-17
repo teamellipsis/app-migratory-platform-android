@@ -2,7 +2,6 @@
 #include <string>
 #include <cstdlib>
 #include <node.h>
-#include <pthread.h>
 #include <android/log.h>
 #include <unistd.h>
 
@@ -85,12 +84,13 @@ Java_mobile_agentplatform_NativeClient_startNodeWithArguments(
 
         int node_result = node::Start(argument_count, argv);
         __android_log_print(ANDROID_LOG_INFO, "NativeClient", "node_result: %d", node_result);
+
+        free(args_buffer);
     } else {
         __android_log_print(ANDROID_LOG_INFO, "NativeClient", "getpid-p: %d", getpid());
         __android_log_print(ANDROID_LOG_INFO, "NativeClient", "getppid-p: %d", getppid());
+
+        free(args_buffer);
+        return jint(pid); // Return forked child process pid. pid = -1 if failed to fork.
     }
-
-    free(args_buffer);
-
-    return jint(0);
 }

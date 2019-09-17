@@ -76,4 +76,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             super.onBackPressed()
         }
     }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        val fragment = supportFragmentManager.findFragmentById(R.id.content_frame) as DrawerFragmentInterface
+        fragment.onNewIntent(intent)
+    }
 }

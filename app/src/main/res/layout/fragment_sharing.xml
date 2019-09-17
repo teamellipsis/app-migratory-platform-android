@@ -1,8 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
+             xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              tools:context=".SharingFragment">
-
+    <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                      android:orientation="vertical">
+            <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                <ImageButton
+                        android:src="@drawable/ic_send"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/btnSend"
+                        android:layout_centerHorizontal="true"
+                        android:background="@drawable/img_btn_bg"
+                />
+                <ImageButton
+                        android:src="@drawable/ic_get_app"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/btnReceive"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@id/txtSend"
+                        android:background="@drawable/img_btn_bg"
+                />
+                <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:id="@+id/txtSend" android:visibility="visible"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                        android:textAlignment="center" android:text="Send App" android:layout_marginTop="20dp"
+                        android:layout_marginStart="20dp" android:layout_marginEnd="20dp"
+                        android:layout_marginBottom="20dp"
+                        android:layout_below="@id/btnSend"/>
+                <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" android:id="@+id/txtReceive" android:visibility="visible"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                        android:textAlignment="center" android:text="Receive App" android:layout_marginTop="20dp"
+                        android:layout_marginStart="20dp" android:layout_marginEnd="20dp"
+                        android:layout_marginBottom="20dp"
+                        android:layout_below="@id/btnReceive"/>
+            </RelativeLayout>
+        </LinearLayout>
+    </ScrollView>
 </FrameLayout>

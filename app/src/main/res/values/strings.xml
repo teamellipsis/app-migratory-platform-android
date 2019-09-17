@@ -50,4 +50,8 @@
 
     <!-- Strings related to sharing_fragment -->
     <string name="title_sharing_fragment">Sharing</string>
+    <string name="camera_per_denied_sharing_fragment">Please grant camera permission to scan QR code. Or type code
+        manually.
+    </string>
+    <string name="invalid_code_sharing_fragment">Invalid code. Please scan QR code.</string>
 </resources>

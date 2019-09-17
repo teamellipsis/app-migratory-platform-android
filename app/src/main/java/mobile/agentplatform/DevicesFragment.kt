@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 
 
-class DevicesFragment : Fragment() {
+class DevicesFragment : Fragment(), DrawerFragmentInterface {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_devices, container, false)

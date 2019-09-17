@@ -15,7 +15,7 @@ import kotlinx.android.synthetic.main.fragment_app_management.*
 import java.io.File
 
 
-class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener {
+class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, DrawerFragmentInterface {
     private var listFiles: MutableList<AppFile> = mutableListOf()
     private lateinit var fileManager: FileManager
     private lateinit var appConfig: AppConfig
