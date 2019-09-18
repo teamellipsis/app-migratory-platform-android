@@ -19,6 +19,8 @@ import android.widget.Toast
 import com.google.zxing.BarcodeFormat
 import kotlinx.android.synthetic.main.fragment_sharing.*
 import com.google.zxing.Result
+import java.io.File
+import java.util.*
 
 
 class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCallback, DrawerFragmentInterface {
@@ -43,7 +45,7 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
             if (SharingFragment.qrScanResult?.barcodeFormat.toString() == BarcodeFormat.QR_CODE.name) {
                 processAppReceiving(SharingFragment.qrScanResult?.text.toString())
             } else {
-                Toast.makeText(context, R.string.invalid_code_sharing_fragment, Toast.LENGTH_LONG).show()
+                Toast.makeText(context, R.string.invalid_code_type_sharing_fragment, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -136,7 +138,140 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
     }
 
     private fun processAppReceiving(code: String) {
-        // Todo(Work with code)
+        val alertDialog: AlertDialog? = this.let {
+            val builder = AlertDialog.Builder(context!!)
+            builder.apply {
+                setCancelable(false)
+            }
+            builder.create()
+        }
+        alertDialog?.show()
+        val ipPortPair = Encoder.decodeIpv4(code)
+        if (ipPortPair == null) {
+            alertDialog?.dismiss()
+            Toast.makeText(context, R.string.invalid_code_sharing_fragment, Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val ipv4 = ipPortPair?.a
+        val port = ipPortPair?.b
+
+        lateinit var pidsDir: File
+        try {
+            pidsDir = File(context!!.filesDir.absoluteFile, "platform/pids")
+            pidsDir.mkdirs()
+        } catch (e: SecurityException) {
+            alertDialog?.dismiss()
+            Toast.makeText(context, R.string.pids_dir_create_failed_sharing_fragment, Toast.LENGTH_LONG).show()
+            return
+        }
+
+        alertDialog?.dismiss()
+
+        // Todo(Move into async task if needed)
+        // Init Node.js process with required args (path_to_pid_dir, path_to_node_modules, path_to_logs)
+        val nativeClient = NativeClient()
+        val script =
+            """
+                const pathToPidsDir = process.argv[1];
+                const pathToNodeModules = process.argv[2];
+                const pathToLogs = process.argv[3];
+
+                const fs = require('fs');
+                const path = require('path');
+                const util = require('util');
+                const logFile = fs.createWriteStream(pathToLogs, { flags: 'a' });
+
+                console.error = (msg, ...optionalParams) => {
+                    logFile.write(util.format(msg, ...optionalParams) + '\n');
+                    process.stderr.write(util.format(msg, ...optionalParams) + '\n');
+                };
+                console.warn = (msg, ...optionalParams) => {
+                    logFile.write(util.format(msg, ...optionalParams) + '\n');
+                    process.stdout.write(util.format(msg, ...optionalParams) + '\n');
+                };
+                console.info = (msg, ...optionalParams) => {
+                    logFile.write(util.format(msg, ...optionalParams) + '\n');
+                    process.stdout.write(util.format(msg, ...optionalParams) + '\n');
+                };
+                console.log = (msg, ...optionalParams) => {
+                    logFile.write(util.format(msg, ...optionalParams) + '\n');
+                    process.stdout.write(util.format(msg, ...optionalParams) + '\n');
+                };
+                console.debug = (msg, optionalParams) => {
+                    logFile.write(util.format(msg, ...optionalParams) + '\n');
+                    process.stdout.write(util.format(msg, ...optionalParams) + '\n');
+                };
+
+                module.paths.push(pathToNodeModules);
+
+                const pidDir = path.join(pathToPidsDir, process.pid.toString());
+                fs.mkdirSync(pidDir);
+                const pathToSock = path.join(pidDir, "socket");
+
+                const net = require('net');
+
+                const server = net.createServer((socket) => {
+                    socket.end('goodbye\n', () => {
+                        console.log('goodbye\n');
+                    });
+                }).on('error', (err) => {
+                    console.log("Server error");
+                    console.log(err);
+                });
+
+                server.on('connection', (socket) => {
+                    console.log("Server connection");
+                    console.log(socket.bufferSize);
+                    socket.on('data', (data) => {
+                        console.log(data);
+                    })
+                });
+
+                function closeServer() {
+                    server.close((err) => {
+                        if (err) {
+                            console.log("close error:");
+                            console.log(err);
+                        } else {
+                            fs.rmdir(pidDir, (error) => {
+                                console.log("rmdir error:");
+                                console.log(error);
+                            });
+                        }
+                    });
+                }
+
+                process.on('exit', (code) => {
+                    closeServer();
+                    console.log("exit: ", code);
+                });
+
+                server.listen(pathToSock, () => {
+                    console.log('opened server on', server.address());
+                });
+            """
+
+        val appConfig = AppConfig(context!!)
+        val pathToNodeModules = appConfig.get(AppConstant.KEY_NODE_MODULES_DIR)
+        val timestamp = Date().time.toString()
+        val logsDir = File(appConfig.get(AppConstant.KEY_LOGS_DIR))
+        logsDir.mkdirs()
+        val pathToLogs = logsDir.absolutePath + "/receive-$timestamp.log"
+
+        val childProcessPid = nativeClient.startNodeWithArgs(
+            "node",
+            "-e",
+            script,
+            pidsDir.absolutePath,
+            pathToNodeModules,
+            pathToLogs
+        )
+
+        // Wait for Node.js create socket file
+
+        // Connect local client to Node.js socket
+
     }
 
     companion object {

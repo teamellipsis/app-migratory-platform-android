@@ -166,6 +166,8 @@ class FreshConfigActivity : AppCompatActivity(), ActivityCompat.OnRequestPermiss
                 appConfig.set(AppConstant.KEY_WORKING_DIR, workingDir)
                 appConfig.set(AppConstant.KEY_APPS_DIR, "$workingDir/${AppConstant.APPS_DIR_NAME}")
                 appConfig.set(AppConstant.KEY_PACKAGES_DIR, "$workingDir/${AppConstant.PACKAGES_DIR_NAME}")
+                appConfig.set(AppConstant.KEY_NODE_MODULES_DIR, "$workingDir/${AppConstant.NODE_MODULES_DIR_NAME}")
+                appConfig.set(AppConstant.KEY_LOGS_DIR, "$workingDir/${AppConstant.LOGS_DIR_NAME}")
             } else {
                 dot3.setImageResource(R.drawable.ic_cancel_dark)
                 printLog(R.string.extract_assets_fail)

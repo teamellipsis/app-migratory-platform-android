@@ -53,5 +53,7 @@
     <string name="camera_per_denied_sharing_fragment">Please grant camera permission to scan QR code. Or type code
         manually.
     </string>
-    <string name="invalid_code_sharing_fragment">Invalid code. Please scan QR code.</string>
+    <string name="invalid_code_type_sharing_fragment">Invalid code type. Please scan QR code.</string>
+    <string name="invalid_code_sharing_fragment">Invalid code. Please check and enter correct code.</string>
+    <string name="pids_dir_create_failed_sharing_fragment">Failed to create required directory.</string>
 </resources>
