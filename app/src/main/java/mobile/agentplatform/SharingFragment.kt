@@ -4,7 +4,10 @@ import android.Manifest
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.LocalSocket
+import android.net.LocalSocketAddress
 import android.os.Bundle
+import android.os.FileObserver
 import android.support.design.widget.TextInputLayout
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
@@ -19,7 +22,10 @@ import android.widget.Toast
 import com.google.zxing.BarcodeFormat
 import kotlinx.android.synthetic.main.fragment_sharing.*
 import com.google.zxing.Result
+import java.io.BufferedReader
 import java.io.File
+import java.io.FileInputStream
+import java.io.InputStreamReader
 import java.util.*
 
 
@@ -156,10 +162,10 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
         val ipv4 = ipPortPair?.a
         val port = ipPortPair?.b
 
-        lateinit var pidsDir: File
+        lateinit var socketDir: File
         try {
-            pidsDir = File(context!!.filesDir.absoluteFile, "platform/pids")
-            pidsDir.mkdirs()
+            socketDir = File(context!!.filesDir.absoluteFile, "platform/sock")
+            socketDir.mkdirs()
         } catch (e: SecurityException) {
             alertDialog?.dismiss()
             Toast.makeText(context, R.string.pids_dir_create_failed_sharing_fragment, Toast.LENGTH_LONG).show()
@@ -173,7 +179,7 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
         val nativeClient = NativeClient()
         val script =
             """
-                const pathToPidsDir = process.argv[1];
+                const pathToSockDir = process.argv[1];
                 const pathToNodeModules = process.argv[2];
                 const pathToLogs = process.argv[3];
 
@@ -205,9 +211,7 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
 
                 module.paths.push(pathToNodeModules);
 
-                const pidDir = path.join(pathToPidsDir, process.pid.toString());
-                fs.mkdirSync(pidDir);
-                const pathToSock = path.join(pidDir, "socket");
+                const pathToSock = path.join(pathToSockDir, process.pid.toString());
 
                 const net = require('net');
 
@@ -233,11 +237,6 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
                         if (err) {
                             console.log("close error:");
                             console.log(err);
-                        } else {
-                            fs.rmdir(pidDir, (error) => {
-                                console.log("rmdir error:");
-                                console.log(error);
-                            });
                         }
                     });
                 }
@@ -263,15 +262,36 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
             "node",
             "-e",
             script,
-            pidsDir.absolutePath,
+            socketDir.absolutePath,
             pathToNodeModules,
             pathToLogs
         )
 
         // Wait for Node.js create socket file
+        val observer = object : FileObserver(socketDir.absolutePath, FileObserver.CREATE) {
+            override fun onEvent(event: Int, path: String?) {
+                if (childProcessPid.toString() == path) {
+                    stopWatching()
+                    // Connect local client to Node.js socket
+                    connectClient(socketDir, childProcessPid)
+                }
+            }
+        }
+        observer.startWatching()
+    }
 
-        // Connect local client to Node.js socket
+    fun connectClient(socketDir: File, pid: Int) {
+        val pathToSock = "${socketDir.absolutePath}/$pid"
+        val localSocketAddress = LocalSocketAddress(pathToSock, LocalSocketAddress.Namespace.FILESYSTEM)
 
+        val client = LocalSocket()
+        client.connect(localSocketAddress)
+        client.receiveBufferSize = 2048
+        client.soTimeout = 3000
+        var stream = FileInputStream(client.fileDescriptor)
+        val inputReader = InputStreamReader(stream)
+        val bufferReader = BufferedReader(inputReader)
+        // Todo(Read the buffer)
     }
 
     companion object {

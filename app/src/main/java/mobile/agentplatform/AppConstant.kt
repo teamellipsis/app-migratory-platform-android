@@ -8,6 +8,7 @@ class AppConstant {
         const val KEY_WORKING_DIR_TEMP = "working_dir_temp"
         const val KEY_APPS_DIR = "apps_dir"
         const val KEY_PACKAGES_DIR = "packages_dir"
+        const val KEY_LOGS_DIR = "logs_dir"
 
         const val NODE_MODULES = "node_modules"
         const val NODE_MODULES_ZIP = "node_modules.zip"
@@ -15,6 +16,8 @@ class AppConstant {
         const val ASSETS_PARENT_NAME = "node"
         const val APPS_DIR_NAME = "apps"
         const val PACKAGES_DIR_NAME = "packages"
+        const val NODE_MODULES_DIR_NAME = "node_modules"
+        const val LOGS_DIR_NAME = "logs"
         const val SERVER_JSON_FILE = "SERVER"
     }
 }
