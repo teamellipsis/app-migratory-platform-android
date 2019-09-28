@@ -3,6 +3,7 @@ package mobile.agentplatform
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.os.FileObserver
 import android.support.v4.app.Fragment
 import android.support.v4.content.FileProvider
 import android.support.v7.app.AlertDialog
@@ -11,8 +12,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import kotlinx.android.synthetic.main.fragment_app_management.*
 import java.io.File
+import java.lang.Exception
 
 
 class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, DrawerFragmentInterface {
@@ -20,6 +23,7 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
     private lateinit var fileManager: FileManager
     private lateinit var appConfig: AppConfig
     private lateinit var arrayAdapter: ArrayAdapter<AppFile>
+    private lateinit var observer: FileObserver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,31 +42,62 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
     override fun onStart() {
         super.onStart()
         listView.onItemClickListener = this
+
+        val appsPath = appConfig.get(AppConstant.KEY_APPS_DIR)
+        observer = object : FileObserver(appsPath) {
+            override fun onEvent(event: Int, path: String?) {
+                if (path != null) {
+                    refreshAppList()
+                }
+            }
+        }
+        observer.startWatching()
     }
 
     override fun onResume() {
         super.onResume()
+        refreshAppList()
+    }
 
-        textView.visibility = View.GONE
+    override fun onDestroy() {
+        super.onDestroy()
 
-        listFiles.clear()
-        val appsDir = File(appConfig.get(AppConstant.KEY_APPS_DIR))
-        if (appsDir.exists()) {
-            for (file in appsDir.listFiles()) {
-                listFiles.add(AppFile(file))
-            }
+        if (::observer.isInitialized) {
+            observer.stopWatching()
         }
+    }
 
-        if (listFiles.isEmpty()) {
-            textView.text = resources.getString(R.string.no_apps_found_app_management_fragment)
-            textView.visibility = View.VISIBLE
+    override fun onPause() {
+        super.onPause()
+
+        if (::observer.isInitialized) {
+            observer.stopWatching()
         }
-
-        listView.adapter = arrayAdapter
     }
 
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         openDialog(listFiles[position])
+    }
+
+    private fun refreshAppList() {
+        this.activity?.runOnUiThread {
+            textView.visibility = View.GONE
+
+            listFiles.clear()
+            val appsDir = File(appConfig.get(AppConstant.KEY_APPS_DIR))
+            if (appsDir.exists() && appsDir.listFiles() != null) {
+                for (file in appsDir.listFiles()) {
+                    listFiles.add(AppFile(file))
+                }
+            }
+
+            if (listFiles.isEmpty()) {
+                textView.text = resources.getString(R.string.no_apps_found_app_management_fragment)
+                textView.visibility = View.VISIBLE
+            }
+
+            listView.adapter = arrayAdapter
+        }
     }
 
     private fun openDialog(appPath: File) {
@@ -75,7 +110,8 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
                     AppDialogOptions.Package.name,
                     AppDialogOptions.Send.name,
                     AppDialogOptions.Reset.name,
-                    AppDialogOptions.Delete.name
+                    AppDialogOptions.Delete.name,
+                    "View Logs"
                 ),
                     DialogInterface.OnClickListener { dialog, which ->
                         when (which) {
@@ -112,7 +148,10 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
                                 // TODO(Reset the agent application)
                             }
                             AppDialogOptions.Delete.ordinal -> {
-                                // TODO(Delete the agent application)
+                                deleteApp(appPath)
+                            }
+                            AppDialogOptions.Log.ordinal -> {
+                                viewAppLogs(appPath)
                             }
                             else -> {
                             }
@@ -125,11 +164,58 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
     }
 
     enum class AppDialogOptions {
-        Open, Package, Send, Reset, Delete
+        Open, Package, Send, Reset, Delete, Log
     }
 
     private fun openApp(appPath: File) {
         val agentManager = AgentManager(context!!)
         agentManager.openApp(appPath)
+    }
+
+    private fun deleteApp(appPath: File) {
+        val alertDialog = AlertDialog.Builder(context!!).create()
+        alertDialog.setTitle("Delete")
+        alertDialog.setMessage("Do you want to delete ${appPath.name}?")
+        alertDialog.setButton(
+            AlertDialog.BUTTON_POSITIVE, "No",
+            DialogInterface.OnClickListener { dialog, _ -> dialog.dismiss() }
+        )
+        alertDialog.setButton(
+            AlertDialog.BUTTON_NEGATIVE, "Yes",
+            DialogInterface.OnClickListener { dialog, _ ->
+                val del = appPath.deleteRecursively()
+                if (del) {
+                    Toast.makeText(context, R.string.success_delete_app_management_fragment, Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, R.string.failed_delete_app_management_fragment, Toast.LENGTH_LONG).show()
+                }
+                dialog.dismiss()
+            }
+        )
+        alertDialog.show()
+    }
+
+    private fun viewAppLogs(appPath: File) {
+        try {
+            val file = File(appPath, "debug.log")
+
+            val fileUri = FileProvider.getUriForFile(
+                context!!,
+                context?.packageName + ".provider",
+                file
+            )
+
+            val sendIntent = Intent().apply {
+                action = Intent.ACTION_SEND
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                putExtra(Intent.EXTRA_STREAM, fileUri)
+                type = "text/plain"
+            }
+            startActivity(sendIntent)
+        } catch (e: IllegalArgumentException) {
+            Toast.makeText(context, R.string.no_logs_app_management_fragment, Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Toast.makeText(context, R.string.error_view_logs_app_management_fragment, Toast.LENGTH_LONG).show()
+        }
     }
 }
