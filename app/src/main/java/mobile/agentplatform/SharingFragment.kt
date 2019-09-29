@@ -4,10 +4,10 @@ import android.Manifest
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.LocalServerSocket
 import android.net.LocalSocket
 import android.net.LocalSocketAddress
 import android.os.Bundle
-import android.os.FileObserver
 import android.support.design.widget.TextInputLayout
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
@@ -22,10 +22,7 @@ import android.widget.Toast
 import com.google.zxing.BarcodeFormat
 import kotlinx.android.synthetic.main.fragment_sharing.*
 import com.google.zxing.Result
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStreamReader
+import java.io.*
 import java.util.*
 
 
@@ -175,13 +172,26 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
         alertDialog?.dismiss()
 
         // Todo(Move into async task if needed)
+        // Create local socket
+        val timestamp = Date().time.toString()
+        val pathToSock = "${socketDir.absolutePath}/$timestamp.sock"
+        val localSocketAddress = LocalSocketAddress(pathToSock, LocalSocketAddress.Namespace.FILESYSTEM)
+
+        val socket = LocalSocket()
+        socket.bind(localSocketAddress)
+
+        val server = LocalServerSocket(socket.fileDescriptor)
+
         // Init Node.js process with required args (path_to_pid_dir, path_to_node_modules, path_to_logs)
         val nativeClient = NativeClient()
         val script =
             """
-                const pathToSockDir = process.argv[1];
+                const pathToSock = process.argv[1];
                 const pathToNodeModules = process.argv[2];
                 const pathToLogs = process.argv[3];
+                const ipv4 = process.argv[4];
+                const port = process.argv[5];
+                const pathToApps = process.argv[6];
 
                 const fs = require('fs');
                 const path = require('path');
@@ -211,49 +221,52 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
 
                 module.paths.push(pathToNodeModules);
 
-                const pathToSock = path.join(pathToSockDir, process.pid.toString());
-
-                const net = require('net');
-
-                const server = net.createServer((socket) => {
-                    socket.end('goodbye\n', () => {
-                        console.log('goodbye\n');
-                    });
-                }).on('error', (err) => {
-                    console.log("Server error");
+                process.on('uncaughtException', (err) => {
+                    console.log('uncaughtException');
                     console.log(err);
                 });
 
-                server.on('connection', (socket) => {
-                    console.log("Server connection");
-                    console.log(socket.bufferSize);
-                    socket.on('data', (data) => {
-                        console.log(data);
-                    })
+                const net = require('net');
+                const AdmZip = require('adm-zip');
+
+                const remote = 'http://' + ipv4 + ':' + port;
+                const remoteSocketClient = require('socket.io-client')(remote);
+
+                remoteSocketClient.on('connect', () => {
+                    console.log('connect');
+                    remoteSocketClient.emit('request');
+                });
+                remoteSocketClient.on('event', (data) => {
+                    console.log('event');
+                    console.log(data);
+                });
+                remoteSocketClient.on('send', (data, ack) => {
+                    let zip = new AdmZip(data);
+                    zip.extractAllTo(pathToApps, true);
+
+                    if (ack) {
+                        ack();
+                    }
+                });
+                remoteSocketClient.on('disconnect', () => {
+                    console.log('disconnect');
                 });
 
-                function closeServer() {
-                    server.close((err) => {
-                        if (err) {
-                            console.log("close error:");
-                            console.log(err);
-                        }
-                    });
-                }
-
-                process.on('exit', (code) => {
-                    closeServer();
-                    console.log("exit: ", code);
+                const client = net.createConnection(pathToSock, () => {
+                    console.log('connected to server!');
                 });
-
-                server.listen(pathToSock, () => {
-                    console.log('opened server on', server.address());
+                client.on('data', (data) => {
+                    console.log(data.toString());
+                });
+                client.on('end', () => {
+                    console.log('disconnected from server\n\n');
                 });
             """
 
         val appConfig = AppConfig(context!!)
         val pathToNodeModules = appConfig.get(AppConstant.KEY_NODE_MODULES_DIR)
-        val timestamp = Date().time.toString()
+        val pathToApps = appConfig.get(AppConstant.KEY_APPS_DIR)
+
         val logsDir = File(appConfig.get(AppConstant.KEY_LOGS_DIR))
         logsDir.mkdirs()
         val pathToLogs = logsDir.absolutePath + "/receive-$timestamp.log"
@@ -262,36 +275,31 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
             "node",
             "-e",
             script,
-            socketDir.absolutePath,
+            pathToSock,
             pathToNodeModules,
-            pathToLogs
+            pathToLogs,
+            ipv4,
+            port.toString(),
+            pathToApps
         )
 
-        // Wait for Node.js create socket file
-        val observer = object : FileObserver(socketDir.absolutePath, FileObserver.CREATE) {
-            override fun onEvent(event: Int, path: String?) {
-                if (childProcessPid.toString() == path) {
-                    stopWatching()
-                    // Connect local client to Node.js socket
-                    connectClient(socketDir, childProcessPid)
-                }
+        var projectThread = Thread(Runnable {
+            try {
+                // Only one connection will accept
+                val sender = server.accept()
+                sender.sendBufferSize = 1024
+                sender.receiveBufferSize = 1024
+
+                val inputReader = InputStreamReader(sender.inputStream)
+                val buffReader = BufferedReader(inputReader)
+                // Read buffer
+                server.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
             }
-        }
-        observer.startWatching()
-    }
 
-    fun connectClient(socketDir: File, pid: Int) {
-        val pathToSock = "${socketDir.absolutePath}/$pid"
-        val localSocketAddress = LocalSocketAddress(pathToSock, LocalSocketAddress.Namespace.FILESYSTEM)
-
-        val client = LocalSocket()
-        client.connect(localSocketAddress)
-        client.receiveBufferSize = 2048
-        client.soTimeout = 3000
-        var stream = FileInputStream(client.fileDescriptor)
-        val inputReader = InputStreamReader(stream)
-        val bufferReader = BufferedReader(inputReader)
-        // Todo(Read the buffer)
+        })
+        projectThread.start()
     }
 
     companion object {
