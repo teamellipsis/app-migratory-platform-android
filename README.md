@@ -22,12 +22,14 @@ npm install --production
 ```
 
 Create ZIP file with the name `node_modules.zip` in `./app/src/main/assets/node`.
+```
 node_modules.zip
-&nbsp;&nbsp;&nbsp;&nbsp;⊢ node_modules
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⊢ ...
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⊢ react
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⊢ redux
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⊢ next
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⊢ ...
+    ⊢ node_modules
+        ⊢ ...
+        ⊢ react
+        ⊢ redux
+        ⊢ next
+        ⊢ ...
+```
 
 Open using Android Studio
