@@ -5,7 +5,7 @@ add_library(
         SHARED
         src/main/cpp/native-lib.cpp)
 
-include_directories( SYSTEM /usr/include/node ) # Path to Node.js include directory
+include_directories( jniLibs/include/node ) # Path to Node.js include directory
 
 add_library( node-lib
         SHARED
