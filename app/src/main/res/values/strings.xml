@@ -42,6 +42,12 @@
     <!-- Strings related to app_management_fragment -->
     <string name="title_app_management_fragment">Apps</string>
     <string name="no_apps_found_app_management_fragment">No apps found</string>
+    <string name="failed_delete_app_management_fragment">Failed to delete app</string>
+    <string name="success_delete_app_management_fragment">Successfully deleted</string>
+    <string name="no_logs_app_management_fragment">No logs file found</string>
+    <string name="error_view_logs_app_management_fragment">Something went wrong</string>
+
+    <!-- Strings related to main_activity -->
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
@@ -55,5 +61,15 @@
     </string>
     <string name="invalid_code_type_sharing_fragment">Invalid code type. Please scan QR code.</string>
     <string name="invalid_code_sharing_fragment">Invalid code. Please check and enter correct code.</string>
-    <string name="pids_dir_create_failed_sharing_fragment">Failed to create required directory.</string>
+    <string name="sock_dir_create_failed_sharing_fragment">Failed to create required directory.</string>
+    <string name="server_socket_create_failed_sharing_fragment">Failed to initiate server socket.</string>
+    <string name="node_process_create_failed_sharing_fragment">Failed to fork process.</string>
+    <string name="generic_error_sharing_fragment">Something went wrong.</string>
+    <string name="successfully_decoded_sharing_fragment">Successfully decoded the code.</string>
+    <string name="created_sock_dir_sharing_fragment">Successfully created socket directory.</string>
+    <string name="created_server_socket_sharing_fragment">Successfully create server socket.</string>
+    <string name="init_node_sharing_fragment">Successfully initiated the Node.js process.</string>
+    <string name="node_connected_sharing_fragment">Node.js client connected.</string>
+    <string name="successfully_received_sharing_fragment">Successfully receive the app.</string>
+    <string name="cancel_receiving_sharing_fragment">Canceled receiving the app.</string>
 </resources>
