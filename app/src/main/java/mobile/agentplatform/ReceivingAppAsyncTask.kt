@@ -19,7 +19,11 @@ import java.io.InputStreamReader
 import java.lang.Exception
 import java.util.*
 
-class ReceivingAppAsyncTask(private var context: Context, private var encodedString: String) :
+class ReceivingAppAsyncTask(
+    private var context: Context,
+    private var encodedString: String,
+    private var listener: MainFragmentInteractionListener
+) :
     AsyncTask<String, String, Pair<Boolean, String?>>() {
 
     private var alertDialog: AlertDialog? = null
@@ -141,6 +145,9 @@ class ReceivingAppAsyncTask(private var context: Context, private var encodedStr
         }
         Toast.makeText(context, prefix + result.b, Toast.LENGTH_LONG).show()
         alertDialog?.dismiss()
+        if (result.b == getString(R.string.successfully_received_sharing_fragment)) {
+            listener.onFragmentChange(R.id.nav_apps)
+        }
     }
 
     private fun getString(id: Int): String? {
@@ -160,8 +167,8 @@ class ReceivingAppAsyncTask(private var context: Context, private var encodedStr
 
     private fun decodeToIpv4(): Boolean {
         val ipPortPair = Encoder.decodeIpv4(encodedString) ?: return false
-        ipv4 = ipPortPair?.a
-        port = ipPortPair?.b
+        ipv4 = ipPortPair.a
+        port = ipPortPair.b
 
         return true
     }

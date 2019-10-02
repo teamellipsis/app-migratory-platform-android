@@ -12,7 +12,8 @@ import android.view.MenuItem
 import android.view.Window
 
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
+    MainFragmentInteractionListener {
     private lateinit var appConfig: AppConfig
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,25 +47,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        lateinit var fragment: Fragment
-        when (item.itemId) {
-            R.id.nav_apps -> {
-                appToolbar.title = resources.getString(R.string.title_app_management_fragment)
-                fragment = AppManagementFragment()
-            }
-            R.id.nav_devices -> {
-                appToolbar.title = resources.getString(R.string.title_devices_fragment)
-                fragment = DevicesFragment()
-            }
-            R.id.nav_share -> {
-                appToolbar.title = resources.getString(R.string.title_sharing_fragment)
-                fragment = SharingFragment()
-            }
-        }
-        supportFragmentManager.beginTransaction()
-            .replace(content_frame.id, fragment)
-            .commit()
-
+        changeFragment(item.itemId)
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
     }
@@ -81,5 +64,41 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onNewIntent(intent)
         val fragment = supportFragmentManager.findFragmentById(R.id.content_frame) as DrawerFragmentInterface
         fragment.onNewIntent(intent)
+    }
+
+    override fun onFragmentChange(itemId: Int) {
+        when (itemId) {
+            R.id.nav_apps -> {
+                nav_view.menu.getItem(0).isChecked = true
+            }
+            R.id.nav_devices -> {
+                nav_view.menu.getItem(1).isChecked = true
+            }
+            R.id.nav_share -> {
+                nav_view.menu.getItem(2).isChecked = true
+            }
+        }
+        changeFragment(itemId)
+    }
+
+    private fun changeFragment(itemId: Int) {
+        lateinit var fragment: Fragment
+        when (itemId) {
+            R.id.nav_apps -> {
+                appToolbar.title = resources.getString(R.string.title_app_management_fragment)
+                fragment = AppManagementFragment()
+            }
+            R.id.nav_devices -> {
+                appToolbar.title = resources.getString(R.string.title_devices_fragment)
+                fragment = DevicesFragment()
+            }
+            R.id.nav_share -> {
+                appToolbar.title = resources.getString(R.string.title_sharing_fragment)
+                fragment = SharingFragment()
+            }
+        }
+        supportFragmentManager.beginTransaction()
+            .replace(content_frame.id, fragment)
+            .commit()
     }
 }

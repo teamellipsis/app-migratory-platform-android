@@ -1,6 +1,7 @@
 package mobile.agentplatform
 
 import android.Manifest
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -22,6 +23,7 @@ import com.google.zxing.Result
 
 
 class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCallback, DrawerFragmentInterface {
+    private var listener: MainFragmentInteractionListener? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_sharing, container, false)
@@ -46,6 +48,20 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
                 Toast.makeText(context, R.string.invalid_code_type_sharing_fragment, Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is MainFragmentInteractionListener) {
+            listener = context
+        } else {
+            throw RuntimeException("$context must implement MainFragmentInteractionListener")
+        }
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        listener = null
     }
 
     private fun openReceiveAppDialog() {
@@ -136,7 +152,7 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
     }
 
     private fun processAppReceiving(code: String) {
-        ReceivingAppAsyncTask(context!!, code).execute()
+        ReceivingAppAsyncTask(context!!, code, listener!!).execute()
     }
 
     companion object {
