@@ -9,6 +9,7 @@ import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.AsyncTask
 import android.support.v7.app.AlertDialog
+import android.util.Log
 import android.webkit.WebView
 import android.view.View
 import android.webkit.WebChromeClient
@@ -32,7 +33,12 @@ class AgentActivity : AppCompatActivity() {
 
         webView.visibility = View.GONE
         appPath = intent.getStringExtra("APP_PATH")
-        imageView.setImageDrawable(Drawable.createFromPath("$appPath/splash_screen.png"))
+        val splashScreen = File(appPath, "splash_screen.png")
+        if (splashScreen.exists()) {
+            imageView.setImageDrawable(Drawable.createFromPath(splashScreen.absolutePath))
+        } else {
+            imageView.setImageDrawable(getDrawable(R.drawable.splash_screen))
+        }
 
         val serverJsonStr = intent.getStringExtra("SERVER_JSON_STR")
         if (serverJsonStr !== null) {
