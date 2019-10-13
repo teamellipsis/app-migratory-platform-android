@@ -42,6 +42,8 @@
     <!-- Strings related to app_management_fragment -->
     <string name="title_app_management_fragment">Apps</string>
     <string name="no_apps_found_app_management_fragment">No apps found</string>
+    <string name="failed_reset_app_management_fragment">Failed to reset app</string>
+    <string name="success_reset_app_management_fragment">Successfully reset app</string>
     <string name="failed_delete_app_management_fragment">Failed to delete app</string>
     <string name="success_delete_app_management_fragment">Successfully deleted</string>
     <string name="no_logs_app_management_fragment">No logs file found</string>

@@ -19,5 +19,8 @@ class AppConstant {
         const val NODE_MODULES_DIR_NAME = "node_modules"
         const val LOGS_DIR_NAME = "logs"
         const val SERVER_JSON_FILE = "SERVER"
+        const val DEBUG_LOG_FILE = "debug.log"
+        const val UI_STATE_FILE = "state"
+        const val DAEMON_STATE_FILE = "state_daemon"
     }
 }

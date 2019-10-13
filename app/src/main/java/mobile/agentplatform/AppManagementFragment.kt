@@ -107,7 +107,7 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
                 setTitle(appPath.name)
                 setItems(arrayOf(
                     AppDialogOptions.Open.name,
-                    AppDialogOptions.Package.name,
+                    AppDialogOptions.Share.name,
                     AppDialogOptions.Send.name,
                     AppDialogOptions.Reset.name,
                     AppDialogOptions.Delete.name,
@@ -118,34 +118,14 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
                             AppDialogOptions.Open.ordinal -> {
                                 openApp(appPath)
                             }
-                            AppDialogOptions.Package.ordinal -> {
-                                // TODO(Packaging should move to async task)
-                                val packagesDir = File(appConfig.get(AppConstant.KEY_PACKAGES_DIR))
-                                packagesDir.mkdirs()
-                                fileManager.zipDir(appPath, File(packagesDir, appPath.name + ".zip"))
+                            AppDialogOptions.Share.ordinal -> {
+                                shareApp(appPath)
                             }
                             AppDialogOptions.Send.ordinal -> {
-                                // TODO(Check package exist before send)
-                                val file = File(appConfig.get(AppConstant.KEY_PACKAGES_DIR), appPath.name + ".zip")
-                                val fileUri = FileProvider.getUriForFile(
-                                    context,
-                                    context.packageName + ".provider",
-                                    file
-                                )
-
-                                val sendIntent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                    putExtra(Intent.EXTRA_STREAM, fileUri)
-                                    type = "application/zip"
-                                }
-
-                                if (sendIntent.resolveActivity(context.packageManager) != null) {
-                                    startActivity(sendIntent)
-                                }
+                                // TODO(Send app between platform)
                             }
                             AppDialogOptions.Reset.ordinal -> {
-                                // TODO(Reset the agent application)
+                                resetApp(appPath)
                             }
                             AppDialogOptions.Delete.ordinal -> {
                                 deleteApp(appPath)
@@ -164,12 +144,43 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
     }
 
     enum class AppDialogOptions {
-        Open, Package, Send, Reset, Delete, Log
+        Open, Share, Send, Reset, Delete, Log
     }
 
     private fun openApp(appPath: File) {
         val agentManager = AgentManager(context!!)
         agentManager.openApp(appPath)
+    }
+
+    private fun shareApp(appPath: File) {
+        ShareAppAsyncTask(context!!, appPath).execute()
+    }
+
+    private fun resetApp(appPath: File) {
+        val alertDialog = AlertDialog.Builder(context!!).create()
+        alertDialog.setTitle("Reset")
+        alertDialog.setMessage("Do you want to reset ${appPath.name}?")
+        alertDialog.setButton(
+            AlertDialog.BUTTON_POSITIVE, "No",
+            DialogInterface.OnClickListener { dialog, _ -> dialog.dismiss() }
+        )
+        alertDialog.setButton(
+            AlertDialog.BUTTON_NEGATIVE, "Yes",
+            DialogInterface.OnClickListener { dialog, _ ->
+                try {
+                    val uiStateFile = File(appPath, AppConstant.UI_STATE_FILE)
+                    uiStateFile.delete()
+                    val daemonStateFile = File(appPath, AppConstant.DAEMON_STATE_FILE)
+                    daemonStateFile.delete()
+
+                    Toast.makeText(context, R.string.success_reset_app_management_fragment, Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, R.string.failed_reset_app_management_fragment, Toast.LENGTH_LONG).show()
+                }
+                dialog.dismiss()
+            }
+        )
+        alertDialog.show()
     }
 
     private fun deleteApp(appPath: File) {
@@ -197,7 +208,7 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
 
     private fun viewAppLogs(appPath: File) {
         try {
-            val file = File(appPath, "debug.log")
+            val file = File(appPath, AppConstant.DEBUG_LOG_FILE)
 
             val fileUri = FileProvider.getUriForFile(
                 context!!,
