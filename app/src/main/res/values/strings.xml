@@ -66,7 +66,7 @@
     <string name="sock_dir_create_failed_sharing_fragment">Failed to create required directory.</string>
     <string name="server_socket_create_failed_sharing_fragment">Failed to initiate server socket.</string>
     <string name="node_process_create_failed_sharing_fragment">Failed to fork process.</string>
-    <string name="generic_error_sharing_fragment">Something went wrong.</string>
+    <string name="generic_error_sharing_fragment">Something went wrong. Try again.</string>
     <string name="successfully_decoded_sharing_fragment">Successfully decoded the code.</string>
     <string name="created_sock_dir_sharing_fragment">Successfully created socket directory.</string>
     <string name="created_server_socket_sharing_fragment">Successfully create server socket.</string>
@@ -74,4 +74,11 @@
     <string name="node_connected_sharing_fragment">Node.js client connected.</string>
     <string name="successfully_received_sharing_fragment">Successfully receive the app.</string>
     <string name="cancel_receiving_sharing_fragment">Canceled receiving the app.</string>
+    <string name="cancel_send_sharing_fragment">Canceled send the app.</string>
+    <string name="error_send_server_send_sharing_fragment">Error send the app.</string>
+    <string name="successfully_sent_sharing_fragment">Successfully sent the app.</string>
+
+    <!-- Strings related to activity_qr_view -->
+    <string name="title_qr_view_activity">Scan QR code</string>
+    <string name="err_gen_qr_view_activity">Error while generating QR code.</string>
 </resources>

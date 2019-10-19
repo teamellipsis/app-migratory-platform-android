@@ -81,6 +81,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         changeFragment(itemId)
     }
 
+    override fun onFragmentChange(itemId: Int, extra: String?) {
+        this.onFragmentChange(itemId)
+        supportFragmentManager.executePendingTransactions()
+        val fragment = supportFragmentManager.findFragmentById(R.id.content_frame) as DrawerFragmentInterface
+        fragment.onFragmentChange(extra)
+    }
+
     private fun changeFragment(itemId: Int) {
         lateinit var fragment: Fragment
         when (itemId) {

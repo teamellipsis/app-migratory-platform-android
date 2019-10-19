@@ -20,6 +20,7 @@ import android.widget.Toast
 import com.google.zxing.BarcodeFormat
 import kotlinx.android.synthetic.main.fragment_sharing.*
 import com.google.zxing.Result
+import java.io.File
 
 
 class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCallback, DrawerFragmentInterface {
@@ -47,6 +48,12 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
             } else {
                 Toast.makeText(context, R.string.invalid_code_type_sharing_fragment, Toast.LENGTH_LONG).show()
             }
+        }
+    }
+
+    override fun onFragmentChange(extra: String?) {
+        if (extra == "SEND_APP") {
+            SendingAppAsyncTask(context!!, appPath!!).execute()
         }
     }
 
@@ -157,6 +164,7 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
 
     companion object {
         var qrScanResult: Result? = null
+        var appPath: File? = null
         private const val SCAN_QR_CODE = "Scan QR code"
         private const val TYPE_CODE = "Type code"
         private const val PERMISSIONS_CAMERA = 0

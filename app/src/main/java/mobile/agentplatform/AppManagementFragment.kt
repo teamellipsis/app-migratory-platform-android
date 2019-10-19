@@ -1,5 +1,6 @@
 package mobile.agentplatform
 
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -24,6 +25,7 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
     private lateinit var appConfig: AppConfig
     private lateinit var arrayAdapter: ArrayAdapter<AppFile>
     private lateinit var observer: FileObserver
+    private var listener: MainFragmentInteractionListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,6 +81,20 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
         openDialog(listFiles[position])
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is MainFragmentInteractionListener) {
+            listener = context
+        } else {
+            throw RuntimeException("$context must implement MainFragmentInteractionListener")
+        }
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        listener = null
+    }
+
     private fun refreshAppList() {
         this.activity?.runOnUiThread {
             textView.visibility = View.GONE
@@ -122,7 +138,7 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
                                 shareApp(appPath)
                             }
                             AppDialogOptions.Send.ordinal -> {
-                                // TODO(Send app between platform)
+                                sendApp(appPath)
                             }
                             AppDialogOptions.Reset.ordinal -> {
                                 resetApp(appPath)
@@ -154,6 +170,11 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
 
     private fun shareApp(appPath: File) {
         ShareAppAsyncTask(context!!, appPath).execute()
+    }
+
+    private fun sendApp(appPath: File) {
+        SharingFragment.appPath = appPath
+        listener?.onFragmentChange(R.id.nav_share, "SEND_APP")
     }
 
     private fun resetApp(appPath: File) {

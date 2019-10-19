@@ -17,10 +17,10 @@
             android:theme="@style/AppTheme">
         <activity
                 android:name=".AgentActivity"
-                android:theme="@style/AgentTheme"
                 android:autoRemoveFromRecents="true"
                 android:configChanges="screenSize|orientation"
-                android:documentLaunchMode="always">
+                android:documentLaunchMode="always"
+                android:theme="@style/AgentTheme">
         </activity>
         <activity
                 android:name=".ActionSendZipActivity"
@@ -63,6 +63,10 @@
         <activity
                 android:name=".QrActivity"
                 android:theme="@style/QrActivityTheme">
+        </activity>
+        <activity
+                android:name=".QrViewActivity"
+                android:launchMode="singleInstance">
         </activity>
     </application>
 
