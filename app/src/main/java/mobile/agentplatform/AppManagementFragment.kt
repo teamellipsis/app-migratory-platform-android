@@ -95,6 +95,14 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
         listener = null
     }
 
+    override fun onFragmentChange(extra: String?) {
+        if (extra == "OPEN_APP") {
+            if (AppManagementFragment.appName != null) {
+                openApp(File(appConfig.get(AppConstant.KEY_APPS_DIR), AppManagementFragment.appName))
+            }
+        }
+    }
+
     private fun refreshAppList() {
         this.activity?.runOnUiThread {
             textView.visibility = View.GONE
@@ -249,5 +257,9 @@ class AppManagementFragment : Fragment(), AdapterView.OnItemClickListener, Drawe
         } catch (e: Exception) {
             Toast.makeText(context, R.string.error_view_logs_app_management_fragment, Toast.LENGTH_LONG).show()
         }
+    }
+
+    companion object {
+        var appName: String? = null
     }
 }

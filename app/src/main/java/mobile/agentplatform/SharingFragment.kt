@@ -72,7 +72,7 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
     }
 
     private fun openReceiveAppDialog() {
-        val listItems = arrayOf(SCAN_QR_CODE, TYPE_CODE)
+        val listItems = arrayOf(RECEIVE_FROM_TRUSTED, SCAN_QR_CODE, TYPE_CODE)
         val alertDialog: AlertDialog? = this.let {
             val builder = AlertDialog.Builder(context!!)
             builder.apply {
@@ -80,6 +80,9 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
                 setItems(listItems,
                     DialogInterface.OnClickListener { dialog, which ->
                         when (which) {
+                            listItems.indexOf(RECEIVE_FROM_TRUSTED) -> {
+                                receiveAppFromTrusted()
+                            }
                             listItems.indexOf(SCAN_QR_CODE) -> {
                                 checkCameraPermissionAndOpenQrScanner()
                             }
@@ -158,6 +161,10 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
         alertDialog?.show()
     }
 
+    private fun receiveAppFromTrusted() {
+        ReceivingAppTrustedAsyncTask(context!!, listener!!).execute()
+    }
+
     private fun processAppReceiving(code: String) {
         ReceivingAppAsyncTask(context!!, code, listener!!).execute()
     }
@@ -167,6 +174,7 @@ class SharingFragment : Fragment(), ActivityCompat.OnRequestPermissionsResultCal
         var appPath: File? = null
         private const val SCAN_QR_CODE = "Scan QR code"
         private const val TYPE_CODE = "Type code"
+        private const val RECEIVE_FROM_TRUSTED = "Receive from trusted"
         private const val PERMISSIONS_CAMERA = 0
     }
 }

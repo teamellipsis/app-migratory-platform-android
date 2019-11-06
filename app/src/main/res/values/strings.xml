@@ -76,6 +76,7 @@
     <string name="cancel_receiving_sharing_fragment">Canceled receiving the app.</string>
     <string name="cancel_send_sharing_fragment">Canceled send the app.</string>
     <string name="error_send_server_send_sharing_fragment">Error send the app.</string>
+    <string name="error_app_receiving_sharing_fragment">Error receiving the app.</string>
     <string name="successfully_sent_sharing_fragment">Successfully sent the app.</string>
 
     <!-- Strings related to activity_qr_view -->
